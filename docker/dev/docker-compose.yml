@@ -1,0 +1,178 @@
+version: '3.8'
+
+services:
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: ${PROJECT_NAME}-nginx-dev
+    ports:
+      - "${NGINX_PORT}:80"
+    volumes:
+      - ../../nginx/dev/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../../frontend:/usr/share/nginx/html/frontend:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Frontend (Development with hot reload)
+  frontend:
+    build:
+      context: ../../frontend
+      dockerfile: ../docker/dev/frontend.Dockerfile
+    container_name: ${PROJECT_NAME}-frontend-dev
+    volumes:
+      - ../../frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:${NGINX_PORT}/api
+    ports:
+      - "${FRONTEND_PORT}:5173"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Spring Boot Backend (Development)
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: ../docker/dev/backend.Dockerfile
+    container_name: ${PROJECT_NAME}-backend-dev
+    volumes:
+      - ../../backend:/app
+      - ~/.m2:/root/.m2
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:mariadb://mariadb:3306/${DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+    ports:
+      - "${BACKEND_PORT}:8080"
+      - "${DEBUG_PORT}:5005"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # MariaDB Database (Default)
+  mariadb:
+    image: mariadb:11.4
+    container_name: ${PROJECT_NAME}-mariadb-dev
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    ports:
+      - "${DB_PORT}:3306"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # phpMyAdmin (for MariaDB)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: ${PROJECT_NAME}-phpmyadmin-dev
+    environment:
+      - PMA_HOST=mariadb
+      - PMA_PORT=3306
+      - PMA_USER=root
+      - PMA_PASSWORD=${DB_ROOT_PASSWORD}
+    ports:
+      - "${PHPMYADMIN_PORT}:80"
+    depends_on:
+      - mariadb
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Alternative: PostgreSQL Database (commented out - uncomment to use instead of MariaDB)
+  # db:
+  #   image: postgres:16-alpine
+  #   container_name: ${PROJECT_NAME}-db-dev
+  #   environment:
+  #     - POSTGRES_DB=${DB_NAME}
+  #     - POSTGRES_USER=${DB_USER}
+  #     - POSTGRES_PASSWORD=${DB_PASSWORD}
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "${DB_PORT}:5432"
+  #   networks:
+  #     - app-network
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   restart: unless-stopped
+
+  # Alternative: pgAdmin (for PostgreSQL - uncomment if using PostgreSQL)
+  # pgadmin:
+  #   image: dpage/pgadmin4:latest
+  #   container_name: ${PROJECT_NAME}-pgadmin-dev
+  #   environment:
+  #     - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
+  #     - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+  #     - PGADMIN_CONFIG_SERVER_MODE=False
+  #   volumes:
+  #     - pgadmin_data:/var/lib/pgadmin
+  #   ports:
+  #     - "${PGADMIN_PORT}:80"
+  #   depends_on:
+  #     - db
+  #   networks:
+  #     - app-network
+  #   restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: ${PROJECT_NAME}-redis-dev
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Redis Commander (Redis GUI for development)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: ${PROJECT_NAME}-redis-commander-dev
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "${REDIS_COMMANDER_PORT}:8081"
+    depends_on:
+      - redis
+    networks:
+      - app-network
+    restart: unless-stopped
+
+volumes:
+  mariadb_data:
+  # postgres_data:
+  # pgadmin_data:
+  redis_data:
+
+networks:
+  app-network:
+    driver: bridge

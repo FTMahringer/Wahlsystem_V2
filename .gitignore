@@ -1,0 +1,47 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+docker/dev/.env
+docker/prod/.env
+
+# Node modules
+node_modules/
+frontend/node_modules/
+backend/target/
+
+# Build outputs
+frontend/dist/
+backend/target/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Database backups
+backups/
+*.sql
+*.sql.gz
+
+# SSL certificates (private)
+nginx/prod/ssl/*.pem
+nginx/prod/ssl/*.key
+nginx/prod/ssl/*.crt
+
+# Docker volumes (if mounted locally)
+volumes/
