@@ -1169,6 +1169,14 @@ for view in "$FRONTEND_DIR/src/views/admin/AdminElectionCreateView.vue" "$FRONTE
 EOF
 done
 
+# Run npm install if not in Docker (Docker will handle it via entrypoint)
+if [ -z "$DOCKER_ENV" ]; then
+    echo ""
+    echo "Installing npm dependencies..."
+    cd "$FRONTEND_DIR"
+    npm install
+fi
+
 echo ""
 echo "========================================"
 echo "Frontend initialization complete!"
@@ -1176,8 +1184,14 @@ echo "========================================"
 echo ""
 echo "Project structure created at: $FRONTEND_DIR"
 echo ""
-echo "Next steps:"
-echo "  1. cd frontend"
-echo "  2. npm install"
-echo "  3. npm run dev"
+if [ -z "$DOCKER_ENV" ]; then
+    echo "Next steps:"
+    echo "  1. cd frontend"
+    echo "  2. npm run dev"
+    echo ""
+    echo "Or start with Docker:"
+    echo "  ./scripts/start-dev.sh"
+else
+    echo "Dependencies will be installed automatically when the container starts."
+fi
 echo ""

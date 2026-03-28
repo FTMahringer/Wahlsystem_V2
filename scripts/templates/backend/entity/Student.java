@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
+@SuperBuilder(toBuilder = true)
 @PrimaryKeyJoinColumn(name = "user_id")
 @DiscriminatorValue("STUDENT")
 public class Student extends User {
@@ -29,12 +29,14 @@ public class Student extends User {
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
+    @Builder.Default
     @Column(name = "can_vote")
     private Boolean canVote = true;
 
     @Column(name = "voting_token")
     private String votingToken;
 
+    @Builder.Default
     @Column(name = "has_voted")
     private Boolean hasVoted = false;
 

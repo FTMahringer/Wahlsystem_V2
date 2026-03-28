@@ -1070,6 +1070,14 @@ button:hover {
 '@
 $voterResultView | Set-Content "$FRONTEND_DIR/src/views/voter/VoterResultView.vue" -Encoding UTF8
 
+# Run npm install if not in Docker (Docker will handle it via entrypoint)
+if (-not $env:DOCKER_ENV) {
+    Write-Host ""
+    Write-Host "Installing npm dependencies..." -ForegroundColor Green
+    Set-Location $FRONTEND_DIR
+    npm install
+}
+
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Green
 Write-Host "Frontend initialization complete!" -ForegroundColor Green
@@ -1077,8 +1085,14 @@ Write-Host "========================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "Project structure created at: $FRONTEND_DIR"
 Write-Host ""
-Write-Host "Next steps:"
-Write-Host "  1. cd frontend"
-Write-Host "  2. npm install"
-Write-Host "  3. npm run dev"
+if (-not $env:DOCKER_ENV) {
+    Write-Host "Next steps:"
+    Write-Host "  1. cd frontend"
+    Write-Host "  2. npm run dev"
+    Write-Host ""
+    Write-Host "Or start with Docker:"
+    Write-Host "  .\scripts\start-dev.ps1"
+} else {
+    Write-Host "Dependencies will be installed automatically when the container starts."
+}
 Write-Host ""

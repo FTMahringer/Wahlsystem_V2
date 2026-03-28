@@ -23,20 +23,20 @@ Write-Host "Creating backend directory structure..." -ForegroundColor Green
 
 # Create directory structure
 $dirs = @(
-    "src/main/java/com/example/wahlsystem/config",
-    "src/main/java/com/example/wahlsystem/controller",
-    "src/main/java/com/example/wahlsystem/dto",
-    "src/main/java/com/example/wahlsystem/entity",
-    "src/main/java/com/example/wahlsystem/enums",
-    "src/main/java/com/example/wahlsystem/exception",
-    "src/main/java/com/example/wahlsystem/mapper",
-    "src/main/java/com/example/wahlsystem/repository",
-    "src/main/java/com/example/wahlsystem/security",
-    "src/main/java/com/example/wahlsystem/service",
-    "src/main/java/com/example/wahlsystem/validation",
-    "src/main/java/com/example/wahlsystem/util",
+    "src/main/java/at/ftmahringer/wahlsystem/config",
+    "src/main/java/at/ftmahringer/wahlsystem/controller",
+    "src/main/java/at/ftmahringer/wahlsystem/dto",
+    "src/main/java/at/ftmahringer/wahlsystem/entity",
+    "src/main/java/at/ftmahringer/wahlsystem/enums",
+    "src/main/java/at/ftmahringer/wahlsystem/exception",
+    "src/main/java/at/ftmahringer/wahlsystem/mapper",
+    "src/main/java/at/ftmahringer/wahlsystem/repository",
+    "src/main/java/at/ftmahringer/wahlsystem/security",
+    "src/main/java/at/ftmahringer/wahlsystem/service",
+    "src/main/java/at/ftmahringer/wahlsystem/validation",
+    "src/main/java/at/ftmahringer/wahlsystem/util",
     "src/main/resources/db/migration",
-    "src/test/java/com/example/wahlsystem",
+    "src/test/java/at/ftmahringer/wahlsystem",
     "src/test/resources"
 )
 
@@ -53,19 +53,72 @@ Write-Host "Creating Maven wrapper..." -ForegroundColor Green
 Set-Location $BACKEND_DIR
 
 if (-not (Test-Path "$BACKEND_DIR/mvnw")) {
-    Write-Host "Downloading Maven wrapper..." -ForegroundColor Green
-    
-    # Download using Invoke-WebRequest
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/takari/maven-wrapper/master/mvnw" -OutFile "mvnw" -UseBasicParsing
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/takari/maven-wrapper/master/mvnw.cmd" -OutFile "mvnw.cmd" -UseBasicParsing
-    
-    # Create .mvn/wrapper directory and properties
+    Write-Host "Creating Maven wrapper files..." -ForegroundColor Green
+
+    # Create .mvn/wrapper directory
     New-Item -ItemType Directory -Force -Path "$BACKEND_DIR/.mvn/wrapper" | Out-Null
+
+    # Create maven-wrapper.properties (using WriteAllText to ensure LF line endings)
+    $wrapperProps = "distributionUrl=https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.9/apache-maven-3.9.9-bin.zip`nwrapperUrl=https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.3.2/maven-wrapper-3.3.2.jar`n"
+    [System.IO.File]::WriteAllText("$BACKEND_DIR/.mvn/wrapper/maven-wrapper.properties", $wrapperProps)
+
+    # Download the wrapper jar
+    $wrapperJarUrl = "https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.3.2/maven-wrapper-3.3.2.jar"
+    Invoke-WebRequest -Uri $wrapperJarUrl -OutFile "$BACKEND_DIR/.mvn/wrapper/maven-wrapper.jar" -UseBasicParsing
+
+    # Create mvnw shell script with LF line endings (for Docker/Linux)
+    $mvnwSh = "#!/bin/sh`n" +
+"# Apache Maven Wrapper startup script`n" +
+"# -----------------------------------------------------------------------------
+`n`n" +
+"APP_HOME=`$( cd `"`${APP_HOME:-.}`" && pwd -P ) || exit`n" +
+"CLASSPATH=`$APP_HOME/.mvn/wrapper/maven-wrapper.jar`n" +
+"`n" +
+"# Determine the Java command to use to start the JVM.`n" +
+"if [ -n `"`$JAVA_HOME`" ] ; then`n" +
+"    if [ -x `"`$JAVA_HOME/jre/sh/java`" ] ; then`n" +
+"        JAVACMD=`"`$JAVA_HOME/jre/sh/java`"`n" +
+"    else`n" +
+"        JAVACMD=`"`$JAVA_HOME/bin/java`"`n" +
+"    fi`n" +
+"    if [ ! -x `"`$JAVACMD`" ] ; then`n" +
+"        echo `"ERROR: JAVA_HOME is set to an invalid directory: `$JAVA_HOME`"`n" +
+"        exit 1`n" +
+"    fi`n" +
+"else`n" +
+"    JAVACMD=`"java`"`n" +
+"    if ! command -v java >/dev/null 2>&1 ; then`n" +
+"        echo `"ERROR: JAVA_HOME is not set and no 'java' command could be found`"`n" +
+"        exit 1`n" +
+"    fi`n" +
+"fi`n" +
+"`n" +
+"exec `"`$JAVACMD`" `$MAVEN_OPTS `$MAVEN_DEBUG_OPTS -classpath `"`$CLASSPATH`" -Dmaven.multiModuleProjectDirectory=`"`$MAVEN_PROJECTBASEDIR`" org.apache.maven.wrapper.MavenWrapperMain `"`$@`"`n"
     
-    @"
-distributionUrl=https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.9/apache-maven-3.9.9-bin.zip
-wrapperUrl=https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.3.2/maven-wrapper-3.3.2.jar
-"@ | Set-Content "$BACKEND_DIR/.mvn/wrapper/maven-wrapper.properties" -Encoding UTF8
+    [System.IO.File]::WriteAllText("$BACKEND_DIR/mvnw", $mvnwSh)
+    
+    # Create mvnw.cmd for Windows (CRLF is fine for Windows)
+    $mvnwCmd = "@echo off`r`n" +
+"setlocal`r`n" +
+"`r`n" +
+"if not `%JAVA_HOME%` == `"`" goto OkJHome`r`n" +
+"echo Error: JAVA_HOME not found in your environment.`r`n" +
+"exit /b 1`r`n" +
+"`r`n" +
+":OkJHome`r`n" +
+"if exist `%JAVA_HOME%\bin\java.exe` goto init`r`n" +
+"echo Error: JAVA_HOME is set to an invalid directory.`r`n" +
+"exit /b 1`r`n" +
+"`r`n" +
+":init`r`n" +
+"set MAVEN_PROJECTBASEDIR=%CD%`r`n" +
+"set WRAPPER_JAR=%MAVEN_PROJECTBASEDIR%\.mvn\wrapper\maven-wrapper.jar`r`n" +
+"`r`n" +
+"`%JAVA_HOME%\bin\java.exe` %MAVEN_OPTS% %MAVEN_DEBUG_OPTS% -classpath `%WRAPPER_JAR%` -Dmaven.multiModuleProjectDirectory=`%MAVEN_PROJECTBASEDIR%` org.apache.maven.wrapper.MavenWrapperMain %*`r`n" +
+"if ERRORLEVEL 1 exit /b 1`r`n" +
+"exit /b 0`r`n"
+    
+    [System.IO.File]::WriteAllText("$BACKEND_DIR/mvnw.cmd", $mvnwCmd)
 }
 
 # Copy application.yml
@@ -93,51 +146,51 @@ public class WahlsystemApplication {
 }
 '@
 
-$mainClass | Set-Content "$BACKEND_DIR/src/main/java/com/example/wahlsystem/WahlsystemApplication.java" -Encoding UTF8
+$mainClass | Set-Content "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/WahlsystemApplication.java" -Encoding UTF8
 
 # Copy entities from templates
 Write-Host "Creating entities..." -ForegroundColor Green
-Copy-Item "$TEMPLATE_DIR/entity/User.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/entity/User.java" -Force
-Copy-Item "$TEMPLATE_DIR/entity/Admin.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/entity/Admin.java" -Force
-Copy-Item "$TEMPLATE_DIR/entity/Teacher.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/entity/Teacher.java" -Force
-Copy-Item "$TEMPLATE_DIR/entity/Student.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/entity/Student.java" -Force
+Copy-Item "$TEMPLATE_DIR/entity/User.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/entity/User.java" -Force
+Copy-Item "$TEMPLATE_DIR/entity/Admin.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/entity/Admin.java" -Force
+Copy-Item "$TEMPLATE_DIR/entity/Teacher.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/entity/Teacher.java" -Force
+Copy-Item "$TEMPLATE_DIR/entity/Student.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/entity/Student.java" -Force
 
 # Copy enums from templates
 Write-Host "Creating enums..." -ForegroundColor Green
-Copy-Item "$TEMPLATE_DIR/enums/UserRole.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/enums/UserRole.java" -Force
-Copy-Item "$TEMPLATE_DIR/enums/ElectionStatus.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/enums/ElectionStatus.java" -Force
-Copy-Item "$TEMPLATE_DIR/enums/ElectionType.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/enums/ElectionType.java" -Force
+Copy-Item "$TEMPLATE_DIR/enums/UserRole.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/enums/UserRole.java" -Force
+Copy-Item "$TEMPLATE_DIR/enums/ElectionStatus.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/enums/ElectionStatus.java" -Force
+Copy-Item "$TEMPLATE_DIR/enums/ElectionType.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/enums/ElectionType.java" -Force
 
 # Copy security classes from templates
 Write-Host "Creating security configuration..." -ForegroundColor Green
-Copy-Item "$TEMPLATE_DIR/security/JwtConfig.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/security/JwtConfig.java" -Force
-Copy-Item "$TEMPLATE_DIR/security/JwtTokenProvider.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/security/JwtTokenProvider.java" -Force
-Copy-Item "$TEMPLATE_DIR/security/JwtAuthenticationFilter.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/security/JwtAuthenticationFilter.java" -Force
-Copy-Item "$TEMPLATE_DIR/security/UserPrincipal.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/security/UserPrincipal.java" -Force
-Copy-Item "$TEMPLATE_DIR/security/UserDetailsServiceImpl.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/security/UserDetailsServiceImpl.java" -Force
-Copy-Item "$TEMPLATE_DIR/security/SecurityConfig.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/security/SecurityConfig.java" -Force
+Copy-Item "$TEMPLATE_DIR/security/JwtConfig.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/security/JwtConfig.java" -Force
+Copy-Item "$TEMPLATE_DIR/security/JwtTokenProvider.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/security/JwtTokenProvider.java" -Force
+Copy-Item "$TEMPLATE_DIR/security/JwtAuthenticationFilter.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/security/JwtAuthenticationFilter.java" -Force
+Copy-Item "$TEMPLATE_DIR/security/UserPrincipal.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/security/UserPrincipal.java" -Force
+Copy-Item "$TEMPLATE_DIR/security/UserDetailsServiceImpl.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/security/UserDetailsServiceImpl.java" -Force
+Copy-Item "$TEMPLATE_DIR/security/SecurityConfig.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/security/SecurityConfig.java" -Force
 
 # Copy DTOs from templates
 Write-Host "Creating DTOs..." -ForegroundColor Green
-Copy-Item "$TEMPLATE_DIR/dto/LoginRequest.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/dto/LoginRequest.java" -Force
-Copy-Item "$TEMPLATE_DIR/dto/RegisterRequest.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/dto/RegisterRequest.java" -Force
-Copy-Item "$TEMPLATE_DIR/dto/AuthResponse.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/dto/AuthResponse.java" -Force
-Copy-Item "$TEMPLATE_DIR/dto/UserDto.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/dto/UserDto.java" -Force
+Copy-Item "$TEMPLATE_DIR/dto/LoginRequest.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/dto/LoginRequest.java" -Force
+Copy-Item "$TEMPLATE_DIR/dto/RegisterRequest.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/dto/RegisterRequest.java" -Force
+Copy-Item "$TEMPLATE_DIR/dto/AuthResponse.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/dto/AuthResponse.java" -Force
+Copy-Item "$TEMPLATE_DIR/dto/UserDto.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/dto/UserDto.java" -Force
 
 # Copy repositories from templates
 Write-Host "Creating repositories..." -ForegroundColor Green
-Copy-Item "$TEMPLATE_DIR/repository/UserRepository.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/repository/UserRepository.java" -Force
-Copy-Item "$TEMPLATE_DIR/repository/AdminRepository.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/repository/AdminRepository.java" -Force
-Copy-Item "$TEMPLATE_DIR/repository/TeacherRepository.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/repository/TeacherRepository.java" -Force
-Copy-Item "$TEMPLATE_DIR/repository/StudentRepository.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/repository/StudentRepository.java" -Force
+Copy-Item "$TEMPLATE_DIR/repository/UserRepository.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/repository/UserRepository.java" -Force
+Copy-Item "$TEMPLATE_DIR/repository/AdminRepository.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/repository/AdminRepository.java" -Force
+Copy-Item "$TEMPLATE_DIR/repository/TeacherRepository.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/repository/TeacherRepository.java" -Force
+Copy-Item "$TEMPLATE_DIR/repository/StudentRepository.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/repository/StudentRepository.java" -Force
 
 # Copy services from templates
 Write-Host "Creating services..." -ForegroundColor Green
-Copy-Item "$TEMPLATE_DIR/service/AuthService.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/service/AuthService.java" -Force
+Copy-Item "$TEMPLATE_DIR/service/AuthService.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/service/AuthService.java" -Force
 
 # Copy controllers from templates
 Write-Host "Creating controllers..." -ForegroundColor Green
-Copy-Item "$TEMPLATE_DIR/controller/AuthController.java" "$BACKEND_DIR/src/main/java/com/example/wahlsystem/controller/AuthController.java" -Force
+Copy-Item "$TEMPLATE_DIR/controller/AuthController.java" "$BACKEND_DIR/src/main/java/at/ftmahringer/wahlsystem/controller/AuthController.java" -Force
 
 # Create Flyway migration
 Write-Host "Creating database migrations..." -ForegroundColor Green
@@ -198,7 +251,7 @@ class WahlsystemApplicationTests {
 
 }
 '@
-$testClass | Set-Content "$BACKEND_DIR/src/test/java/com/example/wahlsystem/WahlsystemApplicationTests.java" -Encoding UTF8
+$testClass | Set-Content "$BACKEND_DIR/src/test/java/at/ftmahringer/wahlsystem/WahlsystemApplicationTests.java" -Encoding UTF8
 
 # Create application-test.yml
 $testYml = @'

@@ -10,7 +10,7 @@ import lombok.experimental.SuperBuilder;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
+@SuperBuilder(toBuilder = true)
 @PrimaryKeyJoinColumn(name = "user_id")
 @DiscriminatorValue("TEACHER")
 public class Teacher extends User {
@@ -27,12 +27,15 @@ public class Teacher extends User {
     @Column(name = "phone")
     private String phone;
 
+    @Builder.Default
     @Column(name = "can_create_elections")
     private Boolean canCreateElections = true;
 
+    @Builder.Default
     @Column(name = "can_manage_own_elections")
     private Boolean canManageOwnElections = true;
 
+    @Builder.Default
     @Column(name = "max_active_elections")
     private Integer maxActiveElections = 5;
 

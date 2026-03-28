@@ -1,6 +1,6 @@
 # Development Dockerfile for Spring Boot Backend
 
-FROM eclipse-temurin:26-jdk
+FROM eclipse-temurin:25-jdk
 
 WORKDIR /app
 

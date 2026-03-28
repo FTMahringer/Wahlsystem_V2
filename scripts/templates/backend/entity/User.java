@@ -3,6 +3,7 @@ package com.example.wahlsystem.entity;
 import com.example.wahlsystem.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder(toBuilder = true)
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "user_type", discriminatorType = DiscriminatorType.STRING)
 public class User {
@@ -42,9 +43,11 @@ public class User {
     @Column(nullable = false)
     private UserRole role;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean active = true;
 
+    @Builder.Default
     @Column(name = "email_verified")
     private Boolean emailVerified = false;
 

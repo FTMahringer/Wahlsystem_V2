@@ -38,7 +38,7 @@ Write-Host "Starting Docker containers..." -ForegroundColor Green
 Write-Host ""
 
 # Change to dev directory
-Set-Location docker/dev
+Set-Location "../docker/dev"
 
 # Build and start services
 docker-compose up --build -d
@@ -70,3 +70,5 @@ Write-Host ""
 Write-Host "To view logs: docker-compose -f docker/dev/docker-compose.yml logs -f"
 Write-Host "To stop:      docker-compose -f docker/dev/docker-compose.yml down"
 Write-Host ""
+
+Set-Location "../../"

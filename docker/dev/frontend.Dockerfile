@@ -9,13 +9,6 @@ RUN apk add --no-cache git
 # Set working directory
 WORKDIR /app
 
-# Copy package files first (for better caching)
-COPY package*.json ./
-
-# Install dependencies
-# Uses package-lock.json if available
-RUN npm ci || npm install
-
 # Expose port for dev server
 # Vite uses 5173, React/Next.js use 3000, Angular uses 4200
 # We'll use 5173 as default but it can be changed
@@ -26,10 +19,23 @@ ENV NODE_ENV=development
 ENV HOST=0.0.0.0
 ENV PORT=5173
 
-# Start development server
-# The command can be overridden for different frameworks:
-# - Vue/Vite: npm run dev -- --host 0.0.0.0
-# - React/Next.js: npm run dev
-# - Angular: npm start -- --host 0.0.0.0 --disable-host-check
-# - SvelteKit: npm run dev -- --host
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+# Create a startup script that installs dependencies if needed and starts the dev server
+RUN printf '%s\n' '#!/bin/sh' \
+    'if [ ! -f package.json ]; then' \
+    '    echo "Error: package.json not found. Please run init-frontend.sh first."' \
+    '    exit 1' \
+    'fi' \
+    '' \
+    '# Check if node_modules is missing or incomplete (vite not found)' \
+    'if [ ! -d node_modules ] || [ ! -f node_modules/.bin/vite ]; then' \
+    '    echo "Installing dependencies..."' \
+    '    rm -rf node_modules package-lock.json' \
+    '    npm install' \
+    'fi' \
+    '' \
+    'echo "Starting development server..."' \
+    'npm run dev -- --host 0.0.0.0' \
+    > /start.sh && chmod +x /start.sh
+
+# Start development server via the startup script
+CMD ["/start.sh"]

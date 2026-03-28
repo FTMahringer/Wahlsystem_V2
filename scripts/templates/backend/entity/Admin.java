@@ -10,20 +10,24 @@ import lombok.experimental.SuperBuilder;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
+@SuperBuilder(toBuilder = true)
 @PrimaryKeyJoinColumn(name = "user_id")
 @DiscriminatorValue("ADMIN")
 public class Admin extends User {
 
+    @Builder.Default
     @Column(name = "admin_level")
     private Integer adminLevel = 1;
 
+    @Builder.Default
     @Column(name = "can_manage_users")
     private Boolean canManageUsers = true;
 
+    @Builder.Default
     @Column(name = "can_manage_elections")
     private Boolean canManageElections = true;
 
+    @Builder.Default
     @Column(name = "can_view_all_results")
     private Boolean canViewAllResults = true;
 
