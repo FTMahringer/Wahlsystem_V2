@@ -15,6 +15,7 @@ import at.ftmahringer.wahlsystem.repository.TeacherRepository;
 import at.ftmahringer.wahlsystem.repository.UserRepository;
 import at.ftmahringer.wahlsystem.security.JwtTokenProvider;
 import at.ftmahringer.wahlsystem.security.UserPrincipal;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -24,8 +25,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
+import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -38,24 +38,28 @@ public class AuthService {
     private final StudentRepository studentRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
+            new UsernamePasswordAuthenticationToken(
+                request.getUsername(),
+                request.getPassword()
+            )
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        UserPrincipal userPrincipal =
+            (UserPrincipal) authentication.getPrincipal();
 
-        User user = userRepository.findById(userPrincipal.getId())
-                .orElseThrow(() -> new BadCredentialsException("User not found"));
+        User user = userRepository
+            .findById(userPrincipal.getId())
+            .orElseThrow(() -> new BadCredentialsException("User not found"));
 
-        // Update last login
+        // Update last login and ensure user is active
         user.setLastLoginAt(LocalDateTime.now());
+        user.setActive(true);
         userRepository.save(user);
 
         String token = tokenProvider.generateToken(authentication);
@@ -79,11 +83,13 @@ public class AuthService {
         User savedUser = userRepository.save(user);
 
         String token = tokenProvider.generateTokenFromUserId(
-                savedUser.getId(),
-                savedUser.getUsername(),
-                "ROLE_" + savedUser.getRole().name()
+            savedUser.getId(),
+            savedUser.getUsername(),
+            "ROLE_" + savedUser.getRole().name()
         );
-        String refreshToken = tokenProvider.generateRefreshToken(savedUser.getId());
+        String refreshToken = tokenProvider.generateRefreshToken(
+            savedUser.getId()
+        );
 
         return buildAuthResponse(token, refreshToken, savedUser);
     }
@@ -101,74 +107,90 @@ public class AuthService {
 
     private Admin createAdmin(RegisterRequest request, String encodedPassword) {
         return Admin.builder()
-                .username(request.getUsername())
-                .email(request.getEmail())
-                .password(encodedPassword)
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .role(UserRole.ADMIN)
-                .active(true)
-                .adminLevel(request.getAdminLevel() != null ? request.getAdminLevel() : 1)
-                .department(request.getDepartment())
-                .phone(request.getPhone())
-                .canManageUsers(true)
-                .canManageElections(true)
-                .canViewAllResults(true)
-                .build();
+            .username(request.getUsername())
+            .email(request.getEmail())
+            .password(encodedPassword)
+            .firstName(request.getFirstName())
+            .lastName(request.getLastName())
+            .role(UserRole.ADMIN)
+            .active(true)
+            .adminLevel(
+                request.getAdminLevel() != null ? request.getAdminLevel() : 1
+            )
+            .department(request.getDepartment())
+            .phone(request.getPhone())
+            .canManageUsers(true)
+            .canManageElections(true)
+            .canViewAllResults(true)
+            .build();
     }
 
-    private Teacher createTeacher(RegisterRequest request, String encodedPassword) {
+    private Teacher createTeacher(
+        RegisterRequest request,
+        String encodedPassword
+    ) {
         return Teacher.builder()
-                .username(request.getUsername())
-                .email(request.getEmail())
-                .password(encodedPassword)
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .role(UserRole.TEACHER)
-                .active(true)
-                .employeeId(request.getEmployeeId())
-                .department(request.getDepartment())
-                .subjects(request.getSubjects())
-                .phone(request.getPhone())
-                .canCreateElections(true)
-                .canManageOwnElections(true)
-                .maxActiveElections(request.getMaxActiveElections() != null ? request.getMaxActiveElections() : 5)
-                .build();
+            .username(request.getUsername())
+            .email(request.getEmail())
+            .password(encodedPassword)
+            .firstName(request.getFirstName())
+            .lastName(request.getLastName())
+            .role(UserRole.TEACHER)
+            .active(true)
+            .employeeId(request.getEmployeeId())
+            .department(request.getDepartment())
+            .subjects(request.getSubjects())
+            .phone(request.getPhone())
+            .canCreateElections(true)
+            .canManageOwnElections(true)
+            .maxActiveElections(
+                request.getMaxActiveElections() != null
+                    ? request.getMaxActiveElections()
+                    : 5
+            )
+            .build();
     }
 
-    private Student createStudent(RegisterRequest request, String encodedPassword) {
+    private Student createStudent(
+        RegisterRequest request,
+        String encodedPassword
+    ) {
         return Student.builder()
-                .username(request.getUsername())
-                .email(request.getEmail())
-                .password(encodedPassword)
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .role(UserRole.STUDENT)
-                .active(true)
-                .studentId(request.getStudentId())
-                .className(request.getClassName())
-                .gradeLevel(request.getGradeLevel())
-                .canVote(true)
-                .hasVoted(false)
-                .build();
+            .username(request.getUsername())
+            .email(request.getEmail())
+            .password(encodedPassword)
+            .firstName(request.getFirstName())
+            .lastName(request.getLastName())
+            .role(UserRole.STUDENT)
+            .active(true)
+            .studentId(request.getStudentId())
+            .className(request.getClassName())
+            .gradeLevel(request.getGradeLevel())
+            .canVote(true)
+            .hasVoted(false)
+            .build();
     }
 
-    private User createBasicUser(RegisterRequest request, String encodedPassword) {
+    private User createBasicUser(
+        RegisterRequest request,
+        String encodedPassword
+    ) {
         return User.builder()
-                .username(request.getUsername())
-                .email(request.getEmail())
-                .password(encodedPassword)
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .role(request.getRole())
-                .active(true)
-                .build();
+            .username(request.getUsername())
+            .email(request.getEmail())
+            .password(encodedPassword)
+            .firstName(request.getFirstName())
+            .lastName(request.getLastName())
+            .role(request.getRole())
+            .active(true)
+            .build();
     }
 
     @Transactional(readOnly = true)
     public UserDto getCurrentUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository
+            .findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
         return mapToUserDto(user);
     }
 
@@ -179,68 +201,95 @@ public class AuthService {
         }
 
         Long userId = tokenProvider.getUserIdFromToken(refreshToken);
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BadCredentialsException("User not found"));
+        User user = userRepository
+            .findById(userId)
+            .orElseThrow(() -> new BadCredentialsException("User not found"));
 
         String newToken = tokenProvider.generateTokenFromUserId(
-                user.getId(),
-                user.getUsername(),
-                "ROLE_" + user.getRole().name()
+            user.getId(),
+            user.getUsername(),
+            "ROLE_" + user.getRole().name()
         );
-        String newRefreshToken = tokenProvider.generateRefreshToken(user.getId());
+        String newRefreshToken = tokenProvider.generateRefreshToken(
+            user.getId()
+        );
 
         return buildAuthResponse(newToken, newRefreshToken, user);
     }
 
-    private AuthResponse buildAuthResponse(String token, String refreshToken, User user) {
+    @Transactional
+    public void logout(String token) {
+        if (StringUtils.hasText(token) && tokenProvider.validateToken(token)) {
+            Long userId = tokenProvider.getUserIdFromToken(token);
+            User user = userRepository.findById(userId).orElse(null);
+            if (user != null) {
+                user.setActive(false);
+                userRepository.save(user);
+            }
+            long expirationTime = tokenProvider.getExpirationTime();
+            tokenBlacklistService.blacklistToken(token, expirationTime);
+        }
+        SecurityContextHolder.clearContext();
+    }
+
+    private AuthResponse buildAuthResponse(
+        String token,
+        String refreshToken,
+        User user
+    ) {
         return AuthResponse.builder()
-                .token(token)
-                .refreshToken(refreshToken)
-                .tokenType("Bearer")
-                .expiresIn(tokenProvider.getExpirationTime())
-                .user(AuthResponse.UserInfo.builder()
-                        .id(user.getId())
-                        .username(user.getUsername())
-                        .email(user.getEmail())
-                        .firstName(user.getFirstName())
-                        .lastName(user.getLastName())
-                        .fullName(user.getFullName())
-                        .role(user.getRole())
-                        .active(user.getActive())
-                        .lastLoginAt(user.getLastLoginAt())
-                        .build())
-                .build();
+            .token(token)
+            .refreshToken(refreshToken)
+            .tokenType("Bearer")
+            .expiresIn(tokenProvider.getExpirationTime())
+            .user(
+                AuthResponse.UserInfo.builder()
+                    .id(user.getId())
+                    .username(user.getUsername())
+                    .email(user.getEmail())
+                    .firstName(user.getFirstName())
+                    .lastName(user.getLastName())
+                    .fullName(user.getFullName())
+                    .role(user.getRole())
+                    .active(user.getActive())
+                    .lastLoginAt(user.getLastLoginAt())
+                    .build()
+            )
+            .build();
     }
 
     private UserDto mapToUserDto(User user) {
         UserDto.UserDtoBuilder builder = UserDto.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .fullName(user.getFullName())
-                .role(user.getRole())
-                .active(user.getActive())
-                .emailVerified(user.getEmailVerified())
-                .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
-                .lastLoginAt(user.getLastLoginAt());
+            .id(user.getId())
+            .username(user.getUsername())
+            .email(user.getEmail())
+            .firstName(user.getFirstName())
+            .lastName(user.getLastName())
+            .fullName(user.getFullName())
+            .role(user.getRole())
+            .active(user.getActive())
+            .emailVerified(user.getEmailVerified())
+            .createdAt(user.getCreatedAt())
+            .updatedAt(user.getUpdatedAt())
+            .lastLoginAt(user.getLastLoginAt());
 
         if (user instanceof Admin admin) {
-            builder.adminLevel(admin.getAdminLevel())
-                    .canManageUsers(admin.getCanManageUsers())
-                    .canManageElections(admin.getCanManageElections());
+            builder
+                .adminLevel(admin.getAdminLevel())
+                .canManageUsers(admin.getCanManageUsers())
+                .canManageElections(admin.getCanManageElections());
         } else if (user instanceof Teacher teacher) {
-            builder.employeeId(teacher.getEmployeeId())
-                    .department(teacher.getDepartment())
-                    .subjects(teacher.getSubjects())
-                    .canCreateElections(teacher.getCanCreateElections());
+            builder
+                .employeeId(teacher.getEmployeeId())
+                .department(teacher.getDepartment())
+                .subjects(teacher.getSubjects())
+                .canCreateElections(teacher.getCanCreateElections());
         } else if (user instanceof Student student) {
-            builder.studentId(student.getStudentId())
-                    .className(student.getClassName())
-                    .gradeLevel(student.getGradeLevel())
-                    .canVote(student.getCanVote());
+            builder
+                .studentId(student.getStudentId())
+                .className(student.getClassName())
+                .gradeLevel(student.getGradeLevel())
+                .canVote(student.getCanVote());
         }
 
         return builder.build();

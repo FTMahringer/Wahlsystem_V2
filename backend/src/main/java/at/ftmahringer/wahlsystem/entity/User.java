@@ -2,12 +2,11 @@ package at.ftmahringer.wahlsystem.entity;
 
 import at.ftmahringer.wahlsystem.enums.UserRole;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -17,7 +16,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
 @Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name = "user_type", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorColumn(
+    name = "user_type",
+    discriminatorType = DiscriminatorType.STRING
+)
 public class User {
 
     @Id
@@ -52,11 +54,20 @@ public class User {
     private Boolean emailVerified = false;
 
     @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
+    @Column(
+        name = "created_at",
+        updatable = false,
+        nullable = false,
+        columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+    )
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated_at")
+    @Column(
+        name = "updated_at",
+        nullable = false,
+        columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+    )
     private LocalDateTime updatedAt;
 
     @Column(name = "last_login_at")

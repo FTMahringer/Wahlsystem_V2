@@ -3,7 +3,14 @@
 </template>
 
 <script setup lang="ts">
-// App root component
+import { onMounted } from "vue";
+import { useAuthStore } from "@/stores/authStore";
+
+const authStore = useAuthStore();
+
+onMounted(() => {
+  authStore.initializeAuth();
+});
 </script>
 
 <style>
@@ -14,7 +21,9 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

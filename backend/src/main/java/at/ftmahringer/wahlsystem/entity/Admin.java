@@ -37,7 +37,13 @@ public class Admin extends User {
     @Column(name = "phone")
     private String phone;
 
-    public Admin(String username, String email, String password, String firstName, String lastName) {
+    public Admin(
+        String username,
+        String email,
+        String password,
+        String firstName,
+        String lastName
+    ) {
         setUsername(username);
         setEmail(email);
         setPassword(password);

@@ -4,7 +4,18 @@ import type { RouteRecordRaw } from "vue-router";
 const routes: RouteRecordRaw[] = [
   {
     path: "/",
-    redirect: "/vote/login",
+    name: "Index",
+    component: () => import("./views/IndexView.vue"),
+  },
+  {
+    path: "/login",
+    name: "Login",
+    component: () => import("./views/auth/LoginView.vue"),
+  },
+  {
+    path: "/register",
+    name: "Register",
+    component: () => import("./views/auth/RegisterView.vue"),
   },
   // Voter routes
   {

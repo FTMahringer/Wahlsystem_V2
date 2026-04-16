@@ -24,9 +24,10 @@ spring:
     username: ${DB_USER:wahlsystem_user}
     password: ${DB_PASSWORD:dev_password}
     driver-class-name: org.mariadb.jdbc.Driver
-  redis:
-    host: redis
-    port: 6379
+  data:
+    redis:
+      host: redis
+      port: 6379
   jpa:
     hibernate:
       ddl-auto: update
@@ -101,10 +102,11 @@ spring:
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5
-  redis:
-    host: redis
-    port: 6379
-    password: ${REDIS_PASSWORD}
+  data:
+    redis:
+      host: redis
+      port: 6379
+      password: ${REDIS_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: validate

@@ -46,8 +46,13 @@
       </form>
 
       <div class="login-footer">
-        <p>Don't have an account? <router-link to="/register">Register</router-link></p>
+        <p>
+          Don't have an account?
+          <router-link to="/register">Register</router-link>
+        </p>
         <p class="voter-link">
+          <router-link to="/">Back to Home</router-link>
+          &nbsp;|&nbsp;
           <router-link to="/vote/login">Voter Login with Token</router-link>
         </p>
       </div>
@@ -56,16 +61,16 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/authStore';
+import { reactive, computed } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/authStore";
 
 const authStore = useAuthStore();
 const router = useRouter();
 
 const credentials = reactive({
-  username: '',
-  password: '',
+  username: "",
+  password: "",
 });
 
 const isFormValid = computed(() => {
@@ -77,10 +82,10 @@ async function handleLogin() {
   if (success) {
     // Redirect based on role
     const user = authStore.currentUser;
-    if (user?.role === 'ADMIN' || user?.role === 'TEACHER') {
-      router.push('/admin/dashboard');
+    if (user?.role === "ADMIN" || user?.role === "TEACHER") {
+      router.push("/admin/dashboard");
     } else {
-      router.push('/');
+      router.push("/");
     }
   }
 }

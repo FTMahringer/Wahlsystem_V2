@@ -18,7 +18,7 @@
       </form>
 
       <div class="admin-link">
-        <router-link to="/admin/login">Admin Login</router-link>
+        <router-link to="/login">Login with Account</router-link>
       </div>
     </div>
   </div>

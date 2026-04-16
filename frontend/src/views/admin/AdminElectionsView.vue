@@ -6,7 +6,7 @@
         Create Election
       </button>
     </div>
-    
+
     <div class="elections-table">
       <table>
         <thead>
@@ -28,13 +28,9 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
-
-const router = useRouter();
-
 function createElection() {
   // Placeholder
-  alert('Create election - not implemented yet');
+  alert("Create election - not implemented yet");
 }
 </script>
 
@@ -80,7 +76,8 @@ table {
   border-collapse: collapse;
 }
 
-th, td {
+th,
+td {
   padding: 1rem;
   text-align: left;
   border-bottom: 1px solid #eee;
