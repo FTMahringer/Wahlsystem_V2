@@ -1,14 +1,17 @@
 <template>
   <aside class="app-sidebar" :class="{ collapsed: uiStore.sidebarCollapsed }">
+
+    <!-- Logo -->
     <div class="sidebar-logo">
-      <span class="logo-icon">🗳️</span>
+      <div class="logo-icon-wrap">🗳️</div>
       <span v-if="!uiStore.sidebarCollapsed" class="logo-text">Wahlsystem</span>
     </div>
 
+    <!-- Main nav -->
     <nav class="sidebar-nav">
-      <template v-for="item in visibleItems" :key="item.id">
+      <template v-for="item in mainItems" :key="item.id">
         <SidebarGroup
-          v-if="item.children && item.children.length > 0"
+          v-if="item.children?.length"
           :item="item"
           :collapsed="uiStore.sidebarCollapsed"
         />
@@ -19,6 +22,15 @@
         />
       </template>
     </nav>
+
+    <!-- Bottom: settings + profile -->
+    <div class="sidebar-bottom">
+      <div class="bottom-divider" />
+      <template v-for="item in bottomItems" :key="item.id">
+        <SidebarItem :item="item" :collapsed="uiStore.sidebarCollapsed" />
+      </template>
+    </div>
+
   </aside>
 </template>
 
@@ -33,7 +45,9 @@ import SidebarGroup from './SidebarGroup.vue';
 const uiStore = useUiStore();
 const { hasAnyRole } = useRole();
 
-const navItems: DashNavItem[] = [
+const BOTTOM_IDS = new Set(['settings', 'profile']);
+
+const allNavItems: DashNavItem[] = [
   {
     id: 'dashboard',
     label: 'Dashboard',
@@ -46,8 +60,8 @@ const navItems: DashNavItem[] = [
     icon: '🗳️',
     children: [
       { id: 'elections-active', label: 'Active Elections', icon: '▶', route: '/admin/elections?status=ACTIVE' },
-      { id: 'elections-all', label: 'All Elections', icon: '📋', route: '/admin/elections' },
-      { id: 'elections-create', label: 'Create Election', icon: '➕', route: '/admin/elections/create' },
+      { id: 'elections-all',    label: 'All Elections',    icon: '📋', route: '/admin/elections' },
+      { id: 'elections-create', label: 'Create Election',  icon: '➕', route: '/admin/elections/create' },
     ],
   },
   {
@@ -61,7 +75,6 @@ const navItems: DashNavItem[] = [
     label: 'Voters',
     icon: '👥',
     route: '/admin/voters',
-    dividerBefore: true,
   },
   {
     id: 'results',
@@ -72,7 +85,7 @@ const navItems: DashNavItem[] = [
   {
     id: 'audit',
     label: 'Audit Logs',
-    icon: '📝',
+    icon: '🔍',
     route: '/admin/audit',
     roles: ['ADMIN'],
   },
@@ -82,7 +95,6 @@ const navItems: DashNavItem[] = [
     icon: '⚙️',
     route: '/admin/settings',
     roles: ['ADMIN'],
-    dividerBefore: true,
   },
   {
     id: 'profile',
@@ -92,60 +104,89 @@ const navItems: DashNavItem[] = [
   },
 ];
 
-const visibleItems = computed(() => {
-  return navItems.filter(item => {
-    if (item.hidden) return false;
-    if (item.roles && item.roles.length > 0) {
-      return hasAnyRole(item.roles as any);
-    }
-    return true;
-  });
-});
+function isVisible(item: DashNavItem) {
+  if (item.hidden) return false;
+  if (item.roles?.length) return hasAnyRole(item.roles as any);
+  return true;
+}
+
+const mainItems   = computed(() => allNavItems.filter(i => !BOTTOM_IDS.has(i.id) && isVisible(i)));
+const bottomItems = computed(() => allNavItems.filter(i =>  BOTTOM_IDS.has(i.id) && isVisible(i)));
 </script>
 
 <style scoped>
 .app-sidebar {
   width: var(--sidebar-width, 240px);
   height: 100vh;
-  background: var(--color-surface, #ffffff);
-  border-right: 1px solid var(--color-border, #e2e8f0);
+  background: #131525;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
-  transition: width 0.2s ease;
+  overflow: hidden;
+  transition: width 0.25s ease;
   position: sticky;
   top: 0;
+  flex-shrink: 0;
 }
 
 .app-sidebar.collapsed {
-  width: 60px;
+  width: 64px;
 }
 
+/* ─── Logo ─── */
 .sidebar-logo {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1.25rem 1rem;
-  border-bottom: 1px solid var(--color-border, #e2e8f0);
+  padding: 1.25rem 1rem 1rem;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.logo-icon {
-  font-size: 1.5rem;
+.logo-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
   flex-shrink: 0;
 }
 
 .logo-text {
   font-weight: 700;
-  font-size: 1.1rem;
-  color: var(--color-text, #1a202c);
+  font-size: 1.05rem;
+  color: #fff;
+  letter-spacing: 0.01em;
 }
 
+/* ─── Main nav ─── */
 .sidebar-nav {
   flex: 1;
-  padding: 0.75rem 0.5rem;
+  padding: 0.5rem 0.6rem;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  scrollbar-width: none;
+}
+.sidebar-nav::-webkit-scrollbar { display: none; }
+
+/* ─── Bottom section ─── */
+.sidebar-bottom {
+  flex-shrink: 0;
+  padding: 0 0.6rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bottom-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 0 0.4rem 0.5rem;
 }
 </style>
+
