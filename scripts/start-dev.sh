@@ -38,7 +38,7 @@ initialize_backend() {
         curl -sSL https://raw.githubusercontent.com/takari/maven-wrapper/master/mvnw -o mvnw
         curl -sSL https://raw.githubusercontent.com/takari/maven-wrapper/master/mvnw.cmd -o mvnw.cmd
         chmod +x mvnw
-        
+
         # Create .mvn/wrapper directory and properties
         mkdir -p "$BACKEND_DIR/.mvn/wrapper"
         cat > "$BACKEND_DIR/.mvn/wrapper/maven-wrapper.properties" << 'EOF'
@@ -323,7 +323,6 @@ echo "Development environment started!"
 echo "========================================"
 echo ""
 echo "Services available at:"
-echo "  - Application:     http://localhost"
 echo "  - Frontend (HMR):  http://localhost:5173"
 echo "  - Backend API:     http://localhost:8080"
 echo "  - Java Debug Port: localhost:5005"
@@ -343,4 +342,5 @@ echo "  - Frontend: $PROJECT_ROOT/frontend"
 echo ""
 echo "To view logs: docker-compose -f docker/dev/docker-compose.yml logs -f"
 echo "To stop:      ./scripts/stop-and-clear.sh"
+echo ""
 echo ""

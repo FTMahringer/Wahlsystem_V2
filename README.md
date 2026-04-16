@@ -1,10 +1,9 @@
 # Docker Compose Environment
 
-A complete Docker Compose setup with Nginx as reverse proxy, Vue.js (or React/Angular/Svelte) frontend, Spring Boot 4.0.5 with Java 26 backend, MariaDB (or PostgreSQL) database, and Redis cache.
+A complete Docker Compose setup with Vue.js (or React/Angular/Svelte) frontend, Spring Boot 4.0.5 with Java 26 backend, MariaDB (or PostgreSQL) database, and Redis cache.
 
 ## What's Included
 
-- **Nginx** - Reverse proxy and static file server
 - **Frontend** - Supports Vue 3.5.31+, React, Angular, Svelte, or any Node.js framework
 - **Backend** - Spring Boot 4.0.5 with Java 26 (latest)
 - **Database** - MariaDB 11.4 (default) or PostgreSQL 16 (alternative)
@@ -66,7 +65,6 @@ A complete Docker Compose setup with Nginx as reverse proxy, Vue.js (or React/An
    ```
 
 3. **Access the services:**
-   - Application: http://localhost
    - Frontend (with HMR): http://localhost:5173
    - Backend API: http://localhost:8080
    - phpMyAdmin: http://localhost:8081
@@ -99,7 +97,6 @@ A complete Docker Compose setup with Nginx as reverse proxy, Vue.js (or React/An
 
 | Service | Development | Production | Description |
 |---------|-------------|------------|-------------|
-| Nginx | Port 80 | Port 80/443 | Reverse proxy |
 | Frontend | Port 5173 (HMR) | Static files | Vue/React/Angular/etc. |
 | Spring Boot | Port 8080 | Internal | Backend API (Java 26) |
 | MariaDB | Port 3306 | Internal | Database (default) |

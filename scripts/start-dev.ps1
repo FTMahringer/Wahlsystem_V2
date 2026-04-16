@@ -417,7 +417,6 @@ Write-Host "Development environment started!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "Services available at:"
-Write-Host "  - Application:     http://localhost"
 Write-Host "  - Frontend (HMR):  http://localhost:5173"
 Write-Host "  - Backend API:     http://localhost:8080"
 Write-Host "  - Java Debug Port: localhost:5005"
@@ -437,6 +436,7 @@ Write-Host "  - Frontend: $PROJECT_ROOT\frontend"
 Write-Host ""
 Write-Host "To view logs: docker-compose -f docker/dev/docker-compose.yml logs -f"
 Write-Host "To stop:      .\scripts\stop-and-clear.ps1"
+Write-Host ""
 Write-Host ""
 
 Set-Location "$PROJECT_ROOT"
