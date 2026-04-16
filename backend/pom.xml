@@ -159,6 +159,13 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- BouncyCastle - required for SCrypt and Argon2 password encoders -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>1.78.1</version>
+        </dependency>
+
         <!-- Apache Commons Lang3 -->
         <dependency>
             <groupId>org.apache.commons</groupId>

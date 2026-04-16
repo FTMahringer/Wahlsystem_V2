@@ -58,6 +58,28 @@ app:
     expiration-ms: 86400000 # 24 hours
     refresh-expiration-ms: 604800000 # 7 days
 
+  # Password hashing configuration
+  # IMPORTANT: Changing algorithm or pepper invalidates all existing hashes.
+  # Store PASSWORD_PEPPER in your .env file, never commit it to source control.
+  security:
+    password:
+      algorithm: bcrypt       # bcrypt | argon2 | scrypt
+      pepper: ${PASSWORD_PEPPER:}
+      bcrypt:
+        strength: 12          # cost factor — each +1 doubles hashing time
+      argon2:
+        salt-length: 16
+        hash-length: 32
+        parallelism: 1
+        memory: 65536         # KB (64 MB)
+        iterations: 3
+      scrypt:
+        cpu-cost: 65536
+        memory-cost: 8
+        parallelism: 1
+        key-length: 32
+        salt-length: 16
+
 # OpenAPI Configuration
 springdoc:
   api-docs:
@@ -128,6 +150,25 @@ app:
     secret: ${JWT_SECRET}
     expiration-ms: 86400000
     refresh-expiration-ms: 604800000
+
+  security:
+    password:
+      algorithm: ${PASSWORD_ALGORITHM:bcrypt}
+      pepper: ${PASSWORD_PEPPER}
+      bcrypt:
+        strength: ${PASSWORD_BCRYPT_STRENGTH:12}
+      argon2:
+        salt-length: 16
+        hash-length: 32
+        parallelism: 2
+        memory: 131072          # 128 MB for production
+        iterations: 4
+      scrypt:
+        cpu-cost: 131072
+        memory-cost: 8
+        parallelism: 1
+        key-length: 32
+        salt-length: 16
 
 # OpenAPI Configuration
 springdoc:
