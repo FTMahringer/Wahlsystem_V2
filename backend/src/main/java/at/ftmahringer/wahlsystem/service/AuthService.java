@@ -220,12 +220,6 @@ public class AuthService {
     @Transactional
     public void logout(String token) {
         if (StringUtils.hasText(token) && tokenProvider.validateToken(token)) {
-            Long userId = tokenProvider.getUserIdFromToken(token);
-            User user = userRepository.findById(userId).orElse(null);
-            if (user != null) {
-                user.setActive(false);
-                userRepository.save(user);
-            }
             long expirationTime = tokenProvider.getExpirationTime();
             tokenBlacklistService.blacklistToken(token, expirationTime);
         }
