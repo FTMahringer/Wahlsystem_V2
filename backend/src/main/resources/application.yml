@@ -54,7 +54,7 @@ server:
 # JWT Configuration
 app:
   jwt:
-    secret: ${JWT_SECRET:mySecretKey123456789012345678901234567890}
+    secret: ${JWT_SECRET:ZGV2LW9ubHktand0LXNlY3JldC1rZXktZm9yLXdhaGxzeXN0ZW0tYXBwbGljYXRpb24tbm90LWZvci1wcm9kdWN0aW9uLXVzZQ==}
     expiration-ms: 86400000 # 24 hours
     refresh-expiration-ms: 604800000 # 7 days
 

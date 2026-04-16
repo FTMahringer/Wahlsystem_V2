@@ -17,6 +17,7 @@ import at.ftmahringer.wahlsystem.security.JwtTokenProvider;
 import at.ftmahringer.wahlsystem.security.UserPrincipal;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,6 +27,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -39,33 +41,45 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
     private final TokenBlacklistService tokenBlacklistService;
+    private final LoginAttemptService loginAttemptService;
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(
-                request.getUsername(),
-                request.getPassword()
-            )
-        );
+        String username = request.getUsername();
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        UserPrincipal userPrincipal =
-            (UserPrincipal) authentication.getPrincipal();
+        if (loginAttemptService.isBlocked(username)) {
+            long secs = loginAttemptService.remainingLockSeconds(username);
+            throw new ResponseStatusException(
+                HttpStatus.TOO_MANY_REQUESTS,
+                "Too many failed attempts. Please try again in " + secs + " seconds."
+            );
+        }
 
-        User user = userRepository
-            .findById(userPrincipal.getId())
-            .orElseThrow(() -> new BadCredentialsException("User not found"));
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(username, request.getPassword())
+            );
 
-        // Update last login and ensure user is active
-        user.setLastLoginAt(LocalDateTime.now());
-        user.setActive(true);
-        userRepository.save(user);
+            loginAttemptService.loginSucceeded(username);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
 
-        String token = tokenProvider.generateToken(authentication);
-        String refreshToken = tokenProvider.generateRefreshToken(user.getId());
+            User user = userRepository
+                .findById(userPrincipal.getId())
+                .orElseThrow(() -> new BadCredentialsException("User not found"));
 
-        return buildAuthResponse(token, refreshToken, user);
+            user.setLastLoginAt(LocalDateTime.now());
+            user.setActive(true);
+            userRepository.save(user);
+
+            String token = tokenProvider.generateToken(authentication);
+            String refreshToken = tokenProvider.generateRefreshToken(user.getId());
+
+            return buildAuthResponse(token, refreshToken, user);
+        } catch (BadCredentialsException e) {
+            loginAttemptService.loginFailed(username);
+            throw new BadCredentialsException("Invalid username or password");
+        }
     }
 
     @Transactional

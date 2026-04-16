@@ -32,22 +32,10 @@ export const useAuthStore = defineStore('auth', () => {
       setAuthData(response);
       return true;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Login failed. Please check your credentials.';
-      return false;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  async function register(data: RegisterRequest): Promise<boolean> {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response: AuthResponse = await authApi.register(data);
-      setAuthData(response);
-      return true;
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Registration failed. Please try again.';
+      const msg = err.response?.data?.message || err.response?.data || '';
+      error.value = typeof msg === 'string' && msg.length > 0
+        ? msg
+        : 'Login failed. Please check your credentials.';
       return false;
     } finally {
       loading.value = false;
@@ -183,7 +171,6 @@ export const useAuthStore = defineStore('auth', () => {
     isAdminOrTeacher,
     currentUser,
     login,
-    register,
     registerAdmin,
     registerTeacher,
     registerStudent,

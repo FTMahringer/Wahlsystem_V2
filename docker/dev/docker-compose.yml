@@ -34,6 +34,9 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_REDIS_HOST=redis
       - SPRING_REDIS_PORT=6379
+      - PASSWORD_ALGORITHM=${PASSWORD_ALGORITHM:-bcrypt}
+      - PASSWORD_PEPPER=${PASSWORD_PEPPER:-}
+      - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret-that-is-at-least-32-bytes-long-for-hmac256}
     ports:
       - "${BACKEND_PORT}:8080"
       - "${DEBUG_PORT}:5005"

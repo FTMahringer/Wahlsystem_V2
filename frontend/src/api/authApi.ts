@@ -8,15 +8,8 @@ import type {
 } from '@/types';
 
 export const authApi = {
-  // Login
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     const response = await apiClient.post('/auth/login', credentials);
-    return response.data;
-  },
-
-  // Register
-  register: async (data: RegisterRequest): Promise<AuthResponse> => {
-    const response = await apiClient.post('/auth/register', data);
     return response.data;
   },
 
@@ -38,7 +31,6 @@ export const authApi = {
     return response.data;
   },
 
-  // Logout
   logout: async (): Promise<void> => {
     await apiClient.post('/auth/logout');
     localStorage.removeItem('auth_token');
@@ -46,19 +38,16 @@ export const authApi = {
     localStorage.removeItem('user');
   },
 
-  // Get current user
   getCurrentUser: async (): Promise<User> => {
     const response = await apiClient.get('/auth/me');
     return response.data;
   },
 
-  // Refresh token
   refreshToken: async (refreshToken: string): Promise<AuthResponse> => {
     const response = await apiClient.post('/auth/refresh', { refreshToken });
     return response.data;
   },
 
-  // Token-based voter login
   tokenLogin: async (credentials: TokenLoginCredentials): Promise<{ token: string; electionId: number }> => {
     const response = await apiClient.post('/auth/token-login', credentials);
     return response.data;

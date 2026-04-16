@@ -13,11 +13,6 @@ const routes: RouteRecordRaw[] = [
     name: 'Login',
     component: () => import('./views/auth/LoginView.vue'),
   },
-  {
-    path: '/register',
-    name: 'Register',
-    component: () => import('./views/auth/RegisterView.vue'),
-  },
 
   // Voter routes — wrapped in VoterLayout
   {
