@@ -45,6 +45,3 @@ nginx/prod/ssl/*.crt
 
 # Docker volumes (if mounted locally)
 volumes/
-
-backend/
-frontend/
