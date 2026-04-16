@@ -52,9 +52,7 @@ if [ "$CLEAR_FLAG" = true ]; then
     fi
     
     echo ""
-    echo "Directories cleared. You can now re-initialize with:"
-    echo "  ./scripts/init-backend.sh"
-    echo "  ./scripts/init-frontend.sh"
+    echo "Directories cleared. Run ./scripts/start-dev.sh to re-initialize."
 else
     echo ""
     echo "To also clear backend and frontend directories, run with --clear flag:"

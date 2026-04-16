@@ -1,6 +1,6 @@
-package com.example.wahlsystem.dto;
+package at.ftmahringer.wahlsystem.dto;
 
-import com.example.wahlsystem.enums.UserRole;
+import at.ftmahringer.wahlsystem.enums.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

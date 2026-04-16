@@ -1,4 +1,4 @@
-package com.example.wahlsystem.entity;
+package at.ftmahringer.wahlsystem.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -43,7 +43,7 @@ public class Admin extends User {
         setPassword(password);
         setFirstName(firstName);
         setLastName(lastName);
-        setRole(com.example.wahlsystem.enums.UserRole.ADMIN);
+        setRole(at.ftmahringer.wahlsystem.enums.UserRole.ADMIN);
         setActive(true);
     }
 }

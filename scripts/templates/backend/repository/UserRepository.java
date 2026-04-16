@@ -1,7 +1,7 @@
-package com.example.wahlsystem.repository;
+package at.ftmahringer.wahlsystem.repository;
 
-import com.example.wahlsystem.entity.User;
-import com.example.wahlsystem.enums.UserRole;
+import at.ftmahringer.wahlsystem.entity.User;
+import at.ftmahringer.wahlsystem.enums.UserRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

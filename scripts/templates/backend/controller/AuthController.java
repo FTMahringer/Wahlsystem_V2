@@ -1,11 +1,11 @@
-package com.example.wahlsystem.controller;
+package at.ftmahringer.wahlsystem.controller;
 
-import com.example.wahlsystem.dto.AuthResponse;
-import com.example.wahlsystem.dto.LoginRequest;
-import com.example.wahlsystem.dto.RegisterRequest;
-import com.example.wahlsystem.dto.UserDto;
-import com.example.wahlsystem.security.UserPrincipal;
-import com.example.wahlsystem.service.AuthService;
+import at.ftmahringer.wahlsystem.dto.AuthResponse;
+import at.ftmahringer.wahlsystem.dto.LoginRequest;
+import at.ftmahringer.wahlsystem.dto.RegisterRequest;
+import at.ftmahringer.wahlsystem.dto.UserDto;
+import at.ftmahringer.wahlsystem.security.UserPrincipal;
+import at.ftmahringer.wahlsystem.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -41,7 +41,7 @@ public class AuthController {
     @Operation(summary = "Register a new admin (admin only)")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AuthResponse> registerAdmin(@Valid @RequestBody RegisterRequest request) {
-        request.setRole(com.example.wahlsystem.enums.UserRole.ADMIN);
+        request.setRole(at.ftmahringer.wahlsystem.enums.UserRole.ADMIN);
         return ResponseEntity.ok(authService.register(request));
     }
 
@@ -49,7 +49,7 @@ public class AuthController {
     @Operation(summary = "Register a new teacher (admin only)")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AuthResponse> registerTeacher(@Valid @RequestBody RegisterRequest request) {
-        request.setRole(com.example.wahlsystem.enums.UserRole.TEACHER);
+        request.setRole(at.ftmahringer.wahlsystem.enums.UserRole.TEACHER);
         return ResponseEntity.ok(authService.register(request));
     }
 
@@ -57,7 +57,7 @@ public class AuthController {
     @Operation(summary = "Register a new student (admin or teacher)")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<AuthResponse> registerStudent(@Valid @RequestBody RegisterRequest request) {
-        request.setRole(com.example.wahlsystem.enums.UserRole.STUDENT);
+        request.setRole(at.ftmahringer.wahlsystem.enums.UserRole.STUDENT);
         return ResponseEntity.ok(authService.register(request));
     }
 

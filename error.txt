@@ -1,0 +1,20 @@
+The local files have content, but Docker isn't syncing them properly. This is a Docker volume issue.
+
+Quick fix - restart just the frontend container:
+
+    docker-compose -f docker/dev/docker-compose.yml restart frontend
+    
+Then wait 10 seconds and check http://localhost:5173
+
+If that doesn't work, force a full rebuild:
+
+    docker-compose -f docker/dev/docker-compose.yml down
+    docker-compose -f docker/dev/docker-compose.yml up --build -d
+
+Nuclear option (clears all Docker caches):
+
+    docker-compose -f docker/dev/docker-compose.yml down -v
+    docker system prune -f
+    docker-compose -f docker/dev/docker-compose.yml up --build -d
+
+The files are correct locally - this is purely a Docker sync issue.

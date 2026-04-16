@@ -1,6 +1,6 @@
-package com.example.wahlsystem.entity;
+package at.ftmahringer.wahlsystem.entity;
 
-import com.example.wahlsystem.enums.UserRole;
+import at.ftmahringer.wahlsystem.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;

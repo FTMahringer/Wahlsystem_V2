@@ -1,6 +1,6 @@
-package com.example.wahlsystem.security;
+package at.ftmahringer.wahlsystem.security;
 
-import com.example.wahlsystem.entity.User;
+import at.ftmahringer.wahlsystem.entity.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

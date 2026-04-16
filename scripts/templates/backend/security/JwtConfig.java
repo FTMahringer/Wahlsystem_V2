@@ -1,4 +1,4 @@
-package com.example.wahlsystem.security;
+package at.ftmahringer.wahlsystem.security;
 
 import lombok.Getter;
 import lombok.Setter;

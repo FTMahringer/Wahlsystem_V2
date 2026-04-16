@@ -1,4 +1,4 @@
-package com.example.wahlsystem.enums;
+package at.ftmahringer.wahlsystem.enums;
 
 public enum ElectionType {
     SINGLE_CHOICE,

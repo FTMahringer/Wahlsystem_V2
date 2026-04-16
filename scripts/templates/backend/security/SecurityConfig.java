@@ -1,4 +1,4 @@
-package com.example.wahlsystem.security;
+package at.ftmahringer.wahlsystem.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

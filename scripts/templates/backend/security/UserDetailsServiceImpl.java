@@ -1,7 +1,7 @@
-package com.example.wahlsystem.security;
+package at.ftmahringer.wahlsystem.security;
 
-import com.example.wahlsystem.entity.User;
-import com.example.wahlsystem.repository.UserRepository;
+import at.ftmahringer.wahlsystem.entity.User;
+import at.ftmahringer.wahlsystem.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

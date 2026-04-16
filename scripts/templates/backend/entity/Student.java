@@ -1,4 +1,4 @@
-package com.example.wahlsystem.entity;
+package at.ftmahringer.wahlsystem.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -47,7 +47,7 @@ public class Student extends User {
         setFirstName(firstName);
         setLastName(lastName);
         setStudentId(studentId);
-        setRole(com.example.wahlsystem.enums.UserRole.STUDENT);
+        setRole(at.ftmahringer.wahlsystem.enums.UserRole.STUDENT);
         setActive(true);
     }
 }

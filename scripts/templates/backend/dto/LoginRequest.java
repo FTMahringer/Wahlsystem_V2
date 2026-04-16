@@ -1,4 +1,4 @@
-package com.example.wahlsystem.dto;
+package at.ftmahringer.wahlsystem.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

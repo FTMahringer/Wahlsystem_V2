@@ -1,6 +1,6 @@
-package com.example.wahlsystem.security;
+package at.ftmahringer.wahlsystem.security;
 
-import com.example.wahlsystem.enums.UserRole;
+import at.ftmahringer.wahlsystem.enums.UserRole;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;

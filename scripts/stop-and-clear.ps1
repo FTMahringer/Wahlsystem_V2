@@ -49,9 +49,7 @@ if ($Clear) {
     }
     
     Write-Host ""
-    Write-Host "Directories cleared. You can now re-initialize with:" -ForegroundColor Cyan
-    Write-Host "  .\scripts\init-backend.ps1"
-    Write-Host "  .\scripts\init-frontend.ps1"
+    Write-Host "Directories cleared. Run .\scripts\start-dev.ps1 to re-initialize." -ForegroundColor Cyan
 } else {
     Write-Host ""
     Write-Host "To also clear backend and frontend directories, run with -Clear flag:" -ForegroundColor Yellow

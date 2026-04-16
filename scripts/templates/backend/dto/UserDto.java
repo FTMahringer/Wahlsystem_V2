@@ -1,6 +1,6 @@
-package com.example.wahlsystem.dto;
+package at.ftmahringer.wahlsystem.dto;
 
-import com.example.wahlsystem.enums.UserRole;
+import at.ftmahringer.wahlsystem.enums.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

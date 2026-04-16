@@ -1,4 +1,4 @@
-package com.example.wahlsystem.security;
+package at.ftmahringer.wahlsystem.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

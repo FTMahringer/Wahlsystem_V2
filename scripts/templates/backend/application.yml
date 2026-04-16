@@ -4,8 +4,11 @@ spring:
   profiles:
     active: dev
   jackson:
+    datatype:
+      datetime:
+        write-dates-as-timestamps: false
     serialization:
-      write-dates-as-timestamps: false
+      fail-on-empty-beans: false
     default-property-inclusion: non_null
 
 server:
@@ -68,7 +71,7 @@ logging:
   level:
     org.springframework.web: DEBUG
     org.hibernate.SQL: DEBUG
-    com.example.wahlsystem: DEBUG
+    at.ftmahringer.wahlsystem: DEBUG
 
 # Management / Actuator
 management:
@@ -135,7 +138,7 @@ springdoc:
 logging:
   level:
     root: WARN
-    com.example.wahlsystem: INFO
+    at.ftmahringer.wahlsystem: INFO
 
 # Management / Actuator
 management:

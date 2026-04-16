@@ -1,6 +1,6 @@
-package com.example.wahlsystem.repository;
+package at.ftmahringer.wahlsystem.repository;
 
-import com.example.wahlsystem.entity.Student;
+import at.ftmahringer.wahlsystem.entity.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
