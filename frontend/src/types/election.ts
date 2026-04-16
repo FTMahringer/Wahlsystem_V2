@@ -1,5 +1,13 @@
-export type ElectionStatus = 'DRAFT' | 'PLANNED' | 'ACTIVE' | 'ENDED' | 'ARCHIVED';
-export type ElectionType = 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE';
+export type ElectionStatus =
+  | "DRAFT"
+  | "PLANNED"
+  | "ACTIVE"
+  | "ENDED"
+  | "ARCHIVED";
+export type ElectionType =
+  | "SINGLE_CHOICE"
+  | "MULTIPLE_CHOICE"
+  | "RANKED_CHOICE";
 
 export interface Election {
   id: number;

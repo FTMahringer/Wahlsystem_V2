@@ -113,22 +113,22 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore();
 
-  // Check auth requirement
-  if (to.matched.some(r => r.meta.requiresAuth)) {
-    if (!authStore.isAuthenticated) {
-      return next('/admin/login');
-    }
+  const requiresAuth = to.matched.some(r => r.meta.requiresAuth);
+  if (!requiresAuth) return next();
+
+  // Verify session with server on every protected navigation
+  const valid = await authStore.verifySession();
+  if (!valid) {
+    return next('/admin/login');
   }
 
-  // Check role requirement
+  // Role check
   const requiredRole = to.meta.requiresRole as string | undefined;
-  if (requiredRole) {
-    if (authStore.user?.role !== requiredRole) {
-      return next('/admin/dashboard');
-    }
+  if (requiredRole && authStore.user?.role !== requiredRole) {
+    return next('/admin/dashboard');
   }
 
   next();
