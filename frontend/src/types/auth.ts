@@ -73,3 +73,13 @@ export interface AuthResponse {
 export interface TokenLoginCredentials {
   token: string;
 }
+
+export interface ManagedUserFilters {
+  role?: Exclude<UserRole, 'ADMIN' | 'VOTER'>;
+  active?: boolean;
+  search?: string;
+}
+
+export interface UserActiveUpdateRequest {
+  active: boolean;
+}

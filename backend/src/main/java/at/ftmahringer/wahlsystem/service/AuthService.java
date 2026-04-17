@@ -84,17 +84,7 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        // Check if username or email already exists
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username already taken");
-        }
-
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already registered");
-        }
-
-        User user = createUserFromRequest(request);
-        User savedUser = userRepository.save(user);
+        User savedUser = createAndSaveUser(request);
 
         String token = tokenProvider.generateTokenFromUserId(
             savedUser.getId(),
@@ -108,6 +98,18 @@ public class AuthService {
         return buildAuthResponse(token, refreshToken, savedUser);
     }
 
+    @Transactional
+    public UserDto createManagedUser(RegisterRequest request) {
+        return mapToUserDto(createAndSaveUser(request));
+    }
+
+    @Transactional
+    public java.util.List<UserDto> createManagedUsers(
+        java.util.List<RegisterRequest> requests
+    ) {
+        return requests.stream().map(this::createManagedUser).toList();
+    }
+
     private User createUserFromRequest(RegisterRequest request) {
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
@@ -117,6 +119,28 @@ public class AuthService {
             case STUDENT -> createStudent(request, encodedPassword);
             default -> createBasicUser(request, encodedPassword);
         };
+    }
+
+    private User createAndSaveUser(RegisterRequest request) {
+        ensureUniqueCredentials(request);
+        User user = createUserFromRequest(request);
+        return userRepository.save(user);
+    }
+
+    private void ensureUniqueCredentials(RegisterRequest request) {
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Username already taken"
+            );
+        }
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Email already registered"
+            );
+        }
     }
 
     private Admin createAdmin(RegisterRequest request, String encodedPassword) {
@@ -266,7 +290,7 @@ public class AuthService {
             .build();
     }
 
-    private UserDto mapToUserDto(User user) {
+    public UserDto mapToUserDto(User user) {
         UserDto.UserDtoBuilder builder = UserDto.builder()
             .id(user.getId())
             .username(user.getUsername())

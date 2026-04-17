@@ -18,28 +18,25 @@ Completed in the first implementation milestone:
 - Voter UI updated to support single-choice, binary, approval, limited-vote, and Borda-count ballots
 - Results UI updated to support vote-based and point-based displays
 - Backend compile/test setup fixed for Java 25 and H2-based tests
+- Admin user-management area added
+- Student and teacher onboarding wizard added with:
+  - single create
+  - bulk paste
+  - CSV import
+- Backend user-management endpoints added for listing users, batch creation, and activating/deactivating accounts
 
 What is still missing
 
-1. Student and teacher management area
-   - Replace the placeholder admin users page with a real management screen
-   - Add list/detail/create/edit flows for teachers and students
-   - Add filtering by role, class, and status
-
-2. User onboarding wizard
-   - Build onboarding on top of the shared wizard system
-   - Support:
-     - single create
-     - bulk paste
-     - CSV import
-   - Add duplicate/conflict review before import
-   - Add role-specific defaults for students and teachers
-
-3. User targeting and provisioning
+1. User targeting and provisioning
    - Add class/group assignment support needed for election targeting
    - Add token generation or access provisioning flows tied to the final voter model
 
-4. Later election roadmap not yet implemented
+2. User management refinement
+   - Add edit/update flows for existing students and teachers
+   - Add optional delete/archive behavior if needed
+   - Add richer duplicate/conflict handling during bulk import
+
+3. Later election roadmap not yet implemented
    - Candidate pair voting
    - Dual-role elections
    - Two-round runoff
@@ -50,7 +47,7 @@ What is still missing
 
 Recommended next implementation target
 
-- Build the admin user-management foundation and the shared student/teacher onboarding wizard next.
+- Add class/group targeting plus token/access provisioning for the user-management flow.
 
 Problem
 
