@@ -16,6 +16,18 @@ The published target is GitHub Pages for `FTMahringer/Wahlsystem_V2`.
 
 ## Quick start
 
+Use the repository startup script as the default development path:
+
+```powershell
+Copy-Item .\docker\dev\.env.example .\docker\dev\.env
+.\scripts\start-dev.ps1
+```
+
+This starts the Docker-based development stack, including frontend, backend, database, and Redis.
+
+<details>
+<summary>Alternative: run frontend and backend directly on the host</summary>
+
 ### Frontend
 
 ```powershell
@@ -30,6 +42,8 @@ npm run dev
 Set-Location .\backend
 java -classpath .mvn\wrapper\maven-wrapper.jar "-Dmaven.multiModuleProjectDirectory=F:\projects\Wahl\backend" org.apache.maven.wrapper.MavenWrapperMain spring-boot:run
 ```
+
+</details>
 
 ## Current implementation
 
