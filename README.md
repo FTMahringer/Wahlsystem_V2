@@ -1,83 +1,20 @@
 # Wahlsystem
 
-School-focused election system with a Spring Boot backend and a Vue 3 frontend.
+School-focused election system with a Spring Boot backend, a Vue 3 frontend, and a Docusaurus documentation site.
 
-## Current status
+## Documentation
 
-The project now includes a working first implementation milestone for the election flow:
+Project documentation now lives in the Docusaurus site under `website/`.
 
-- aligned backend/frontend election types
-- shared frontend wizard system
-- election creation and editing wizard
-- token-based voter login
-- adaptive voter ballots
-- type-aware result views
-- admin user-management foundation with onboarding wizard support
-
-## Implemented election types
-
-- `SINGLE_CHOICE`
-- `BINARY_CHOICE`
-- `APPROVAL_VOTING`
-- `LIMITED_VOTE`
-- `BORDA_COUNT`
-
-## Main user flows
-
-### Admin / teacher
-
-- log in
-- create and edit elections through the wizard
-- manage candidates
-- review election results
-- manage students and teachers from the admin users area
-- onboard users with:
-  - single create
-  - bulk paste
-  - CSV import
-
-### Voter
-
-- log in with a voting token
-- open the assigned election
-- submit a ballot that matches the election type
-- confirm the vote
-
-## Tech stack
-
-### Frontend
-
-- Vue 3
-- TypeScript
-- Vite
-- Vue Router
-- Pinia
-- Axios
-
-### Backend
-
-- Java 25
-- Spring Boot 4.0.5
-- Spring Web
-- Spring Data JPA
-- Spring Security
-- MariaDB
-- Redis
-- Flyway
-
-## Project structure
-
-```text
-.
-├── backend/     # Spring Boot API
-├── frontend/    # Vue application
-├── docker/      # Dev/prod Docker Compose setup
-├── nginx/       # Reverse proxy config
-├── scripts/     # Helper scripts
-└── udpate-plan.txt
+```powershell
+Set-Location .\website
+npm install
+npm start
 ```
 
-## Local development
+The published target is GitHub Pages for `FTMahringer/Wahlsystem_V2`.
+
+## Quick start
 
 ### Frontend
 
@@ -91,28 +28,18 @@ npm run dev
 
 ```powershell
 Set-Location .\backend
-java -classpath .mvn\wrapper\maven-wrapper.jar "-Dmaven.multiModuleProjectDirectory=$PWD" org.apache.maven.wrapper.MavenWrapperMain spring-boot:run
+java -classpath .mvn\wrapper\maven-wrapper.jar "-Dmaven.multiModuleProjectDirectory=F:\projects\Wahl\backend" org.apache.maven.wrapper.MavenWrapperMain spring-boot:run
 ```
 
-If `mvnw.cmd` does not work locally, set `JAVA_HOME` first or invoke the Maven wrapper JAR directly as shown above.
+## Current implementation
 
-## Validation commands
+- election creation/edit wizard
+- token-based voter login
+- single-choice, binary, approval, limited-vote, and Borda-count elections
+- admin user management
+- student/teacher onboarding wizard
 
-### Frontend
+## Planning
 
-```powershell
-Set-Location .\frontend
-npm run build
-```
-
-### Backend
-
-```powershell
-Set-Location .\backend
-java -classpath .mvn\wrapper\maven-wrapper.jar "-Dmaven.multiModuleProjectDirectory=$PWD" org.apache.maven.wrapper.MavenWrapperMain test
-```
-
-## Notes
-
-- `udpate-plan.txt` tracks the rollout and remaining work.
-- Advanced election types like candidate pairs, dual-role elections, runoff variants, and score voting are still planned, not implemented yet.
+- rollout and remaining work: `udpate-plan.txt`
+- election-idea backlog: `types-and-ideas.txt`

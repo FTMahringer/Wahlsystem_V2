@@ -24,6 +24,9 @@ Completed in the first implementation milestone:
   - bulk paste
   - CSV import
 - Backend user-management endpoints added for listing users, batch creation, and activating/deactivating accounts
+- Docusaurus documentation site scaffolded and replaced with project-specific docs
+- GitHub Pages workflow added for documentation deployment
+- Root README slimmed down to point to the docs site instead of duplicating long-form project documentation
 
 What is still missing
 
