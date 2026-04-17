@@ -1,20 +1,25 @@
 <template>
   <div class="admin-login">
+    <div class="login-topbar">
+      <router-link to="/" class="home-link">{{ t('common.backToHome') }}</router-link>
+      <AppPreferencesControls />
+    </div>
+
     <div class="login-card">
       <div class="login-header">
         <span class="login-icon">🗳️</span>
-        <h1>Admin Login</h1>
-        <p>Sign in to manage elections</p>
+        <h1>{{ t('auth.adminLoginTitle') }}</h1>
+        <p>{{ t('auth.adminLoginSubtitle') }}</p>
       </div>
 
       <form @submit.prevent="handleLogin" class="login-form" autocomplete="on">
         <div class="form-group">
-          <label for="username">Username</label>
+          <label for="username">{{ t('auth.username') }}</label>
           <input
             id="username"
             v-model="credentials.username"
             type="text"
-            placeholder="Enter username"
+            :placeholder="t('auth.usernamePlaceholder')"
             autocomplete="username"
             required
             :disabled="authStore.loading || blocked"
@@ -22,13 +27,13 @@
         </div>
 
         <div class="form-group">
-          <label for="password">Password</label>
+          <label for="password">{{ t('auth.password') }}</label>
           <div class="password-wrapper">
             <input
               id="password"
               v-model="credentials.password"
               :type="showPassword ? 'text' : 'password'"
-              placeholder="Enter password"
+              :placeholder="t('auth.passwordPlaceholder')"
               autocomplete="current-password"
               required
               :disabled="authStore.loading || blocked"
@@ -56,19 +61,19 @@
           :disabled="authStore.loading || !isValid || blocked"
         >
           <span v-if="authStore.loading" class="spinner" />
-          {{ authStore.loading ? 'Signing in...' : 'Sign In' }}
+          {{ authStore.loading ? t('auth.signingIn') : t('auth.signIn') }}
         </button>
       </form>
 
       <div v-if="isDevMode" class="dev-tools">
-        <p class="dev-tools__title">Dev tools</p>
+        <p class="dev-tools__title">{{ t('auth.devTools') }}</p>
         <button
           type="button"
           class="dev-btn"
           :disabled="authStore.loading"
           @click="handleDevLogin"
         >
-          Sign in as admin
+          {{ t('auth.devSignInAdmin') }}
         </button>
         <button
           type="button"
@@ -76,24 +81,23 @@
           :disabled="authStore.loading"
           @click="handleDevResetAdmin"
         >
-          Reset admin to admin / admin123
+          {{ t('auth.devResetAdmin') }}
         </button>
-      </div>
-
-      <div class="login-footer">
-        <router-link to="/">← Back to Home</router-link>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, computed, onMounted } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import AppPreferencesControls from '@/components/common/AppPreferencesControls.vue';
+import { useLocale } from '@/composables/useLocale';
 import { useAuthStore } from '@/stores/authStore';
 
 const authStore = useAuthStore();
 const router = useRouter();
+const { t } = useLocale();
 
 const credentials = reactive({ username: '', password: '' });
 const showPassword = ref(false);
@@ -144,19 +148,35 @@ async function handleDevResetAdmin() {
 .admin-login {
   min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  flex-direction: column;
+  background: linear-gradient(135deg, var(--color-primary) 0%, #764ba2 100%);
   padding: 1rem;
 }
 
+.login-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.home-link {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+}
+
 .login-card {
-  background: white;
-  padding: 2.5rem;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
+  margin: auto;
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .login-header {
@@ -171,15 +191,15 @@ async function handleDevResetAdmin() {
 }
 
 .login-header h1 {
-  margin: 0 0 0.25rem 0;
-  color: var(--color-text, #1a202c);
+  margin: 0 0 0.25rem;
+  color: var(--color-text);
   font-size: 1.5rem;
 }
 
 .login-header p {
   margin: 0;
-  color: var(--color-text-muted, #718096);
-  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
 }
 
 .login-form {
@@ -191,32 +211,34 @@ async function handleDevResetAdmin() {
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.45rem;
 }
 
 .form-group label {
   font-weight: 500;
-  color: #555;
+  color: var(--color-text);
   font-size: 0.9rem;
 }
 
 .form-group input {
-  padding: 0.75rem 1rem;
-  border: 1.5px solid var(--color-border, #e2e8f0);
-  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
   font-size: 1rem;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   width: 100%;
-  box-sizing: border-box;
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: var(--color-primary, #667eea);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.18);
 }
 
 .form-group input:disabled {
-  background: #f5f5f5;
+  opacity: 0.7;
 }
 
 .password-wrapper {
@@ -238,45 +260,49 @@ async function handleDevResetAdmin() {
   padding: 0;
   font-size: 1.1rem;
   line-height: 1;
-  color: #888;
+  color: var(--color-text-muted);
   display: flex;
   align-items: center;
-  user-select: none;
-}
-
-.toggle-password:hover {
-  color: #555;
 }
 
 .error-message {
-  color: var(--color-danger, #e53e3e);
+  color: var(--color-danger);
   font-size: 0.9rem;
   text-align: center;
-  padding: 0.5rem;
-  background: #fff5f5;
-  border-radius: 6px;
-  border: 1px solid #fed7d7;
+  padding: 0.75rem;
+  background: rgba(229, 62, 62, 0.12);
+  border-radius: 8px;
+  border: 1px solid rgba(229, 62, 62, 0.22);
 }
 
-.login-btn {
+.login-btn,
+.dev-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   width: 100%;
   padding: 0.875rem;
-  background: var(--color-primary, #667eea);
-  color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.login-btn {
+  background: var(--color-primary);
+  color: white;
+}
+
+.login-btn:hover:not(:disabled),
+.dev-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
 .login-btn:hover:not(:disabled) {
-  background: var(--color-primary-hover, #5a67d8);
+  background: var(--color-primary-hover);
 }
 
 .login-btn:disabled,
@@ -298,7 +324,7 @@ async function handleDevResetAdmin() {
 .dev-tools {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--color-border, #e2e8f0);
+  border-top: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -308,58 +334,40 @@ async function handleDevResetAdmin() {
   margin: 0;
   text-align: center;
   font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-text-muted, #718096);
+  font-weight: 700;
+  color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .dev-btn {
-  width: 100%;
-  padding: 0.75rem;
-  border-radius: 8px;
-  border: 1px solid var(--color-primary, #667eea);
-  background: #eef2ff;
-  color: var(--color-primary, #667eea);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
-}
-
-.dev-btn:hover:not(:disabled) {
-  background: #e0e7ff;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
 }
 
 .dev-btn--secondary {
-  border-color: #94a3b8;
-  background: #f8fafc;
-  color: #475569;
-}
-
-.dev-btn--secondary:hover:not(:disabled) {
-  background: #f1f5f9;
-}
-
-.login-footer {
-  margin-top: 1.5rem;
-  text-align: center;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--color-border, #e2e8f0);
-}
-
-.login-footer a {
-  color: var(--color-primary, #667eea);
-  text-decoration: none;
-  font-size: 0.9rem;
-}
-
-.login-footer a:hover {
-  text-decoration: underline;
+  background: transparent;
 }
 
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-login {
+    padding: 0.75rem;
+  }
+
+  .login-topbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .login-card {
+    padding: 1.5rem;
   }
 }
 </style>

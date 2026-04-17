@@ -3,21 +3,26 @@
     <header class="voter-topbar">
       <router-link to="/vote/login" class="voter-brand">
         <span class="brand-icon">🗳️</span>
-        <span class="brand-text">Wahlsystem</span>
+        <span class="brand-text">{{ t('app.name') }}</span>
       </router-link>
+      <AppPreferencesControls />
     </header>
     <main class="voter-content">
       <router-view />
     </main>
     <footer class="voter-footer">
-      <p>&copy; {{ new Date().getFullYear() }} Wahlsystem</p>
+      <p>&copy; {{ new Date().getFullYear() }} {{ t('app.name') }} · {{ t('voter.footer') }}</p>
     </footer>
     <GlobalToastLayer />
   </div>
 </template>
 
 <script setup lang="ts">
+import { useLocale } from '@/composables/useLocale';
+import AppPreferencesControls from '@/components/common/AppPreferencesControls.vue';
 import GlobalToastLayer from '@/components/ui/GlobalToastLayer.vue';
+
+const { t } = useLocale();
 </script>
 
 <style scoped>
@@ -25,13 +30,15 @@ import GlobalToastLayer from '@/components/ui/GlobalToastLayer.vue';
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #764ba2 100%);
 }
 
 .voter-topbar {
   padding: 1rem 2rem;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .voter-brand {

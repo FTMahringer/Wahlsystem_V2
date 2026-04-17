@@ -9,18 +9,20 @@
     <p class="confirm-message">{{ uiStore.confirmDialog.message }}</p>
 
     <template #footer>
-      <BaseButton variant="secondary" @click="handleCancel">Cancel</BaseButton>
-      <BaseButton variant="danger" @click="handleConfirm">Confirm</BaseButton>
+      <BaseButton variant="secondary" @click="handleCancel">{{ t('dialogs.cancel') }}</BaseButton>
+      <BaseButton variant="danger" @click="handleConfirm">{{ t('dialogs.confirm') }}</BaseButton>
     </template>
   </BaseDialog>
 </template>
 
 <script setup lang="ts">
 import { useUiStore } from '@/stores/uiStore';
+import { useLocale } from '@/composables/useLocale';
 import BaseDialog from '@/components/common/BaseDialog.vue';
 import BaseButton from '@/components/common/BaseButton.vue';
 
 const uiStore = useUiStore();
+const { t } = useLocale();
 
 function handleConfirm() {
   uiStore.confirmDialog?.onConfirm();

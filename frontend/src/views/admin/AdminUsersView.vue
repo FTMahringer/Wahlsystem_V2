@@ -2,30 +2,30 @@
   <div class="admin-users">
     <div class="header">
       <div>
-        <h1>Users</h1>
+        <h1>{{ t('adminUsers.title') }}</h1>
         <p class="subtitle">
-          Manage students and teachers, then onboard new users through the shared wizard flow.
+          {{ t('adminUsers.subtitle') }}
         </p>
       </div>
-      <BaseButton @click="openWizard">➕ Add Users</BaseButton>
+      <BaseButton @click="openWizard">➕ {{ t('adminUsers.addUsers') }}</BaseButton>
     </div>
 
     <div class="summary-grid">
       <div class="summary-card">
         <strong>{{ users.length }}</strong>
-        <span>Total</span>
+        <span>{{ t('common.total') }}</span>
       </div>
       <div class="summary-card">
         <strong>{{ users.filter((user) => user.role === 'STUDENT').length }}</strong>
-        <span>Students</span>
+        <span>{{ t('adminUsers.students') }}</span>
       </div>
       <div class="summary-card">
         <strong>{{ users.filter((user) => user.role === 'TEACHER').length }}</strong>
-        <span>Teachers</span>
+        <span>{{ t('adminUsers.teachers') }}</span>
       </div>
       <div class="summary-card">
         <strong>{{ users.filter((user) => user.active).length }}</strong>
-        <span>Active</span>
+        <span>{{ t('common.active') }}</span>
       </div>
     </div>
 
@@ -44,34 +44,34 @@
 
       <div class="toolbar-actions">
         <select v-model="activeFilter" class="status-select">
-          <option value="ALL">All statuses</option>
-          <option value="ACTIVE">Active only</option>
-          <option value="INACTIVE">Inactive only</option>
+          <option value="ALL">{{ t('adminUsers.allStatuses') }}</option>
+          <option value="ACTIVE">{{ t('adminUsers.activeOnly') }}</option>
+          <option value="INACTIVE">{{ t('adminUsers.inactiveOnly') }}</option>
         </select>
 
         <input
           v-model="search"
           type="search"
           class="search-input"
-          placeholder="Search by name, username, or email"
+          :placeholder="t('adminUsers.searchPlaceholder')"
           @keyup.enter="loadUsers"
         />
 
-        <BaseButton variant="secondary" @click="loadUsers">Refresh</BaseButton>
+        <BaseButton variant="secondary" @click="loadUsers">{{ t('common.refresh') }}</BaseButton>
       </div>
     </div>
 
-    <div v-if="loading" class="loading-state">Loading users...</div>
+    <div v-if="loading" class="loading-state">{{ t('adminUsers.loading') }}</div>
 
     <div v-else-if="error" class="error-state">
       <p>{{ error }}</p>
-      <BaseButton @click="loadUsers">Retry</BaseButton>
+      <BaseButton @click="loadUsers">{{ t('common.retry') }}</BaseButton>
     </div>
 
     <BaseEmptyState
       v-else-if="users.length === 0"
-      title="No users found"
-      message="Create the first students or teachers with the onboarding wizard."
+      :title="t('adminUsers.emptyTitle')"
+      :message="t('adminUsers.emptyMessage')"
       icon="👥"
     />
 
@@ -79,14 +79,14 @@
       <table>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Role</th>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Group</th>
-            <th>Status</th>
-            <th>Created</th>
-            <th>Actions</th>
+            <th>{{ t('common.name') }}</th>
+            <th>{{ t('common.role') }}</th>
+            <th>{{ t('common.username') }}</th>
+            <th>{{ t('common.email') }}</th>
+            <th>{{ t('common.group') }}</th>
+            <th>{{ t('common.status') }}</th>
+            <th>{{ t('common.created') }}</th>
+            <th>{{ t('common.actions') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -94,13 +94,13 @@
             <td>
               <div class="name-cell">
                 <strong>{{ user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username }}</strong>
-                <small v-if="user.role === 'STUDENT' && user.studentId">ID: {{ user.studentId }}</small>
-                <small v-else-if="user.role === 'TEACHER' && user.employeeId">ID: {{ user.employeeId }}</small>
+                <small v-if="user.role === 'STUDENT' && user.studentId">{{ t('common.id') }}: {{ user.studentId }}</small>
+                <small v-else-if="user.role === 'TEACHER' && user.employeeId">{{ t('common.id') }}: {{ user.employeeId }}</small>
               </div>
             </td>
             <td>
               <span class="role-badge" :class="user.role.toLowerCase()">
-                {{ user.role }}
+                {{ t(`roles.${user.role}`) }}
               </span>
             </td>
             <td>{{ user.username }}</td>
@@ -108,7 +108,7 @@
             <td>{{ describeGroup(user) }}</td>
             <td>
               <span class="status-badge" :class="{ inactive: !user.active }">
-                {{ user.active ? "Active" : "Inactive" }}
+                {{ user.active ? t('common.active') : t('common.inactive') }}
               </span>
             </td>
             <td>{{ formatDate(user.createdAt) }}</td>
@@ -119,7 +119,7 @@
                 :loading="togglingUserId === user.id"
                 @click="toggleActive(user)"
               >
-                {{ user.active ? "Deactivate" : "Activate" }}
+                {{ user.active ? t('adminUsers.deactivate') : t('adminUsers.activate') }}
               </BaseButton>
             </td>
           </tr>
@@ -129,7 +129,7 @@
 
     <BaseDialog
       :open="wizardOpen"
-      title="User onboarding wizard"
+      :title="t('adminUsers.onboardingTitle')"
       size="lg"
       @update:open="handleDialogState"
     >
@@ -141,7 +141,7 @@
               <p v-if="currentStep?.description">{{ currentStep.description }}</p>
             </div>
             <span class="step-counter">
-              Step {{ currentStepIndex + 1 }} / {{ wizardSteps.length }}
+              {{ t('wizard.stepCounter', { current: currentStepIndex + 1, total: wizardSteps.length }) }}
             </span>
           </div>
         </template>
@@ -191,53 +191,53 @@
           <div v-if="importMode === 'single'" class="single-form">
             <div class="form-grid">
               <div class="form-group">
-                <label>Username *</label>
+                  <label>{{ t('common.username') }} *</label>
                 <input v-model="singleForm.username" type="text" />
               </div>
               <div class="form-group">
-                <label>Email *</label>
+                  <label>{{ t('common.email') }} *</label>
                 <input v-model="singleForm.email" type="email" />
               </div>
               <div class="form-group">
-                <label>Password *</label>
+                  <label>{{ t('common.password') }} *</label>
                 <input v-model="singleForm.password" type="text" />
               </div>
               <div class="form-group">
-                <label>First Name *</label>
+                  <label>{{ t('common.firstName') }} *</label>
                 <input v-model="singleForm.firstName" type="text" />
               </div>
               <div class="form-group">
-                <label>Last Name *</label>
+                  <label>{{ t('common.lastName') }} *</label>
                 <input v-model="singleForm.lastName" type="text" />
               </div>
 
               <template v-if="onboardingRole === 'STUDENT'">
                 <div class="form-group">
-                  <label>Student ID *</label>
+                  <label>{{ t('adminUsers.studentId') }} *</label>
                   <input v-model="singleForm.studentId" type="text" />
                 </div>
                 <div class="form-group">
-                  <label>Class *</label>
-                  <input v-model="singleForm.className" type="text" placeholder="e.g. 10A" />
+                  <label>{{ t('common.class') }} *</label>
+                  <input v-model="singleForm.className" type="text" :placeholder="t('adminElectionForm.classPlaceholder')" />
                 </div>
                 <div class="form-group">
-                  <label>Grade</label>
+                  <label>{{ t('adminUsers.grade') }}</label>
                   <input v-model.number="singleForm.gradeLevel" type="number" min="1" />
                 </div>
               </template>
 
               <template v-else>
                 <div class="form-group">
-                  <label>Employee ID *</label>
+                  <label>{{ t('adminUsers.employeeId') }} *</label>
                   <input v-model="singleForm.employeeId" type="text" />
                 </div>
                 <div class="form-group">
-                  <label>Department</label>
+                  <label>{{ t('common.department') }}</label>
                   <input v-model="singleForm.department" type="text" />
                 </div>
                 <div class="form-group full-width">
-                  <label>Subjects</label>
-                  <input v-model="singleForm.subjects" type="text" placeholder="Math, Physics" />
+                  <label>{{ t('common.subjects') }}</label>
+                  <input v-model="singleForm.subjects" type="text" :placeholder="t('common.subjects')" />
                 </div>
               </template>
             </div>
@@ -246,12 +246,12 @@
           <div v-else class="bulk-import">
             <div class="import-toolbar">
               <div class="import-hint">
-                <strong>{{ importMode === 'csv' ? 'CSV import' : 'Bulk paste' }}</strong>
+                <strong>{{ importMode === 'csv' ? t('adminUsers.csvImport') : t('adminUsers.bulkPaste') }}</strong>
                 <p>{{ importHint }}</p>
               </div>
               <label v-if="importMode === 'csv'" class="file-input">
                 <input type="file" accept=".csv,text/csv,.txt" @change="handleCsvUpload" />
-                Choose file
+                {{ t('adminUsers.chooseFile') }}
               </label>
             </div>
 
@@ -263,9 +263,9 @@
             />
 
             <div class="preview-note">
-              Parsed rows: <strong>{{ parsedImport.users.length }}</strong>
+              {{ t('adminUsers.parsedRows') }} <strong>{{ parsedImport.users.length }}</strong>
               <span v-if="parsedImport.errors.length > 0" class="field-error">
-                • {{ parsedImport.errors.length }} issue(s) need to be fixed
+                • {{ t('adminUsers.issuesNeedFixing', { count: parsedImport.errors.length }) }}
               </span>
             </div>
 
@@ -276,32 +276,32 @@
         <WizardStepPanel :active="currentStepId === 'review'">
           <div class="review-grid">
             <div class="review-card">
-              <h3>Import mode</h3>
+              <h3>{{ t('adminUsers.importMode') }}</h3>
               <p>{{ currentImportMode.label }}</p>
             </div>
             <div class="review-card">
-              <h3>Role</h3>
-              <p>{{ onboardingRole }}</p>
+              <h3>{{ t('adminUsers.role') }}</h3>
+              <p>{{ t(`roles.${onboardingRole}`) }}</p>
             </div>
             <div class="review-card">
-              <h3>Entries</h3>
+              <h3>{{ t('adminUsers.entries') }}</h3>
               <p>{{ reviewUsers.length }}</p>
             </div>
             <div class="review-card">
-              <h3>Expected result</h3>
-              <p>Create {{ reviewUsers.length }} {{ onboardingRole === 'STUDENT' ? 'student(s)' : 'teacher(s)' }}</p>
+              <h3>{{ t('adminUsers.expectedResult') }}</h3>
+              <p>{{ t('adminUsers.createExpectedResult', { count: reviewUsers.length, role: onboardingRole === 'STUDENT' ? t('adminUsers.studentsPlural') : t('adminUsers.teachersPlural') }) }}</p>
             </div>
           </div>
 
           <div class="review-list-card">
-            <h3>Preview</h3>
+            <h3>{{ t('adminUsers.preview') }}</h3>
             <table class="preview-table">
               <thead>
                 <tr>
-                  <th>Username</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>{{ onboardingRole === 'STUDENT' ? 'Class' : 'Department' }}</th>
+                  <th>{{ t('common.username') }}</th>
+                  <th>{{ t('common.name') }}</th>
+                  <th>{{ t('common.email') }}</th>
+                  <th>{{ onboardingRole === 'STUDENT' ? t('common.class') : t('common.department') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -309,12 +309,12 @@
                   <td>{{ user.username }}</td>
                   <td>{{ user.firstName }} {{ user.lastName }}</td>
                   <td>{{ user.email }}</td>
-                  <td>{{ onboardingRole === 'STUDENT' ? user.className || '—' : user.department || '—' }}</td>
+                  <td>{{ onboardingRole === 'STUDENT' ? user.className || t('common.notAvailable') : user.department || t('common.notAvailable') }}</td>
                 </tr>
               </tbody>
             </table>
             <p v-if="reviewUsers.length > 8" class="preview-more">
-              Showing the first 8 entries.
+              {{ t('adminUsers.firstEntriesShown') }}
             </p>
           </div>
         </WizardStepPanel>
@@ -324,14 +324,14 @@
             :is-first-step="isFirstStep"
             :is-last-step="isLastStep"
             :submitting="submitting"
-            submit-label="Create users"
+            :submit-label="t('adminUsers.createUsers')"
             @back="goToPreviousStep"
             @next="goToNextStepWithValidation"
             @submit="submitWizard"
           >
             <template #secondary>
               <BaseButton variant="ghost" :disabled="submitting" @click="closeWizard">
-                Cancel
+                {{ t('common.cancel') }}
               </BaseButton>
             </template>
           </WizardActions>
@@ -353,7 +353,9 @@ import WizardActions from "@/components/common/wizard/WizardActions.vue";
 import WizardShell from "@/components/common/wizard/WizardShell.vue";
 import WizardStepNav from "@/components/common/wizard/WizardStepNav.vue";
 import WizardStepPanel from "@/components/common/wizard/WizardStepPanel.vue";
+import { useLocale } from "@/composables/useLocale";
 import { useWizard, type WizardStepDefinition } from "@/composables/useWizard";
+import { toIntlLocale } from "@/locales";
 import { useUiStore } from "@/stores/uiStore";
 import type { ManagedUserFilters, RegisterRequest, User } from "@/types";
 
@@ -363,6 +365,8 @@ type RoleFilter = "ALL" | ManagedRole;
 type ActiveFilter = "ALL" | "ACTIVE" | "INACTIVE";
 
 const uiStore = useUiStore();
+const { t, language } = useLocale();
+const localeCode = computed(() => toIntlLocale(language.value));
 
 const users = ref<User[]>([]);
 const loading = ref(false);
@@ -394,63 +398,63 @@ const singleForm = reactive({
   subjects: "",
 });
 
-const roleFilters = [
-  { label: "All", value: "ALL" as const },
-  { label: "Students", value: "STUDENT" as const },
-  { label: "Teachers", value: "TEACHER" as const },
-];
+const roleFilters = computed(() => [
+  { label: t('adminElections.filters.ALL'), value: "ALL" as const },
+  { label: t('adminUsers.students'), value: "STUDENT" as const },
+  { label: t('adminUsers.teachers'), value: "TEACHER" as const },
+]);
 
-const importModes = [
+const importModes = computed(() => [
   {
     value: "single" as const,
-    label: "Single create",
-    description: "Create one user with a guided form.",
+    label: t('adminUsers.importModeOptions.single.label'),
+    description: t('adminUsers.importModeOptions.single.description'),
   },
   {
     value: "bulk" as const,
-    label: "Bulk paste",
-    description: "Paste multiple rows at once from a spreadsheet or text list.",
+    label: t('adminUsers.importModeOptions.bulk.label'),
+    description: t('adminUsers.importModeOptions.bulk.description'),
   },
   {
     value: "csv" as const,
-    label: "CSV import",
-    description: "Upload a CSV file and preview the imported users before saving.",
+    label: t('adminUsers.importModeOptions.csv.label'),
+    description: t('adminUsers.importModeOptions.csv.description'),
   },
-];
+]);
 
-const managedRoles = [
+const managedRoles = computed(() => [
   {
     value: "STUDENT" as const,
-    label: "Students",
-    description: "Ideal for class-based election access and voter targeting.",
+    label: t('adminUsers.managedRoles.STUDENT.label'),
+    description: t('adminUsers.managedRoles.STUDENT.description'),
   },
   {
     value: "TEACHER" as const,
-    label: "Teachers",
-    description: "Create staff accounts that can manage elections and groups.",
+    label: t('adminUsers.managedRoles.TEACHER.label'),
+    description: t('adminUsers.managedRoles.TEACHER.description'),
   },
-];
+]);
 
-const wizardSteps = ref<WizardStepDefinition[]>([
+const wizardSteps = computed<WizardStepDefinition[]>(() => [
   {
     id: "mode",
-    title: "Import mode",
-    description: "Choose how the users should be created.",
+    title: t('adminUsers.wizardSteps.mode.title'),
+    description: t('adminUsers.wizardSteps.mode.description'),
   },
   {
     id: "role",
-    title: "Role",
-    description: "Select whether you are onboarding students or teachers.",
+    title: t('adminUsers.wizardSteps.role.title'),
+    description: t('adminUsers.wizardSteps.role.description'),
   },
   {
     id: "details",
-    title: "Details",
-    description: "Enter the user information or paste/import the rows.",
+    title: t('adminUsers.wizardSteps.details.title'),
+    description: t('adminUsers.wizardSteps.details.description'),
   },
   {
     id: "review",
-    title: "Review",
-    description: "Check the preview before the users are created.",
+    title: t('adminUsers.wizardSteps.review.title'),
+    description: t('adminUsers.wizardSteps.review.description'),
   },
 ]);
 
@@ -472,19 +476,15 @@ const {
 });
 
 const currentImportMode = computed(
-  () => importModes.find((mode) => mode.value === importMode.value) ?? importModes[0],
+  () => importModes.value.find((mode) => mode.value === importMode.value) ?? importModes.value[0],
 );
 
 const importHint = computed(() =>
-  onboardingRole.value === "STUDENT"
-    ? "Use the order: username, email, password, firstName, lastName, studentId, className, gradeLevel"
-    : "Use the order: username, email, password, firstName, lastName, employeeId, department, subjects",
+  t(`adminUsers.importHints.${onboardingRole.value}`),
 );
 
 const importPlaceholder = computed(() =>
-  onboardingRole.value === "STUDENT"
-    ? "username,email,password,firstName,lastName,studentId,className,gradeLevel\njdoe,jdoe@example.com,secret123,Jane,Doe,S-001,10A,10"
-    : "username,email,password,firstName,lastName,employeeId,department,subjects\ntsmith,tsmith@example.com,secret123,Tom,Smith,T-015,Science,Math;Physics",
+  t(`adminUsers.importPlaceholders.${onboardingRole.value}`),
 );
 
 const parsedImport = computed(() => parseImportedUsers(importText.value, onboardingRole.value));
@@ -559,7 +559,7 @@ async function loadUsers() {
   try {
     users.value = await userApi.getAll(buildFilters());
   } catch (err: any) {
-    error.value = err.response?.data?.message || "Failed to load users.";
+    error.value = err.response?.data?.message || t('adminUsers.loadFailed');
   } finally {
     loading.value = false;
   }
@@ -567,19 +567,19 @@ async function loadUsers() {
 
 function describeGroup(user: User): string {
   if (user.role === "STUDENT") {
-    const className = user.className || "—";
-    return user.gradeLevel ? `${className} • Grade ${user.gradeLevel}` : className;
+    const className = user.className || t('common.notAvailable');
+    return user.gradeLevel ? t('adminUsers.groupGrade', { className, grade: user.gradeLevel }) : className;
   }
 
   if (user.role === "TEACHER") {
-    return user.department || "—";
+    return user.department || t('common.notAvailable');
   }
 
-  return "—";
+  return t('common.notAvailable');
 }
 
 function formatDate(value?: string): string {
-  return value ? new Date(value).toLocaleDateString("de-DE") : "—";
+  return value ? new Date(value).toLocaleDateString(localeCode.value) : t('common.notAvailable');
 }
 
 async function toggleActive(user: User) {
@@ -592,12 +592,15 @@ async function toggleActive(user: User) {
     }
     uiStore.showToast({
       type: "success",
-      message: `${updated.fullName || updated.username} is now ${updated.active ? "active" : "inactive"}.`,
+      message: t('adminUsers.activeStateToast', {
+        name: updated.fullName || updated.username,
+        state: updated.active ? t('common.active') : t('common.inactive'),
+      }),
     });
   } catch (err: any) {
     uiStore.showToast({
       type: "error",
-      message: err.response?.data?.message || "Failed to update the user state.",
+      message: err.response?.data?.message || t('adminUsers.updateStateFailed'),
     });
   } finally {
     togglingUserId.value = null;
@@ -652,17 +655,17 @@ function validateSingleForm(): boolean {
     !request.firstName ||
     !request.lastName
   ) {
-    errors.single = "Complete the required user fields before continuing.";
+    errors.single = t('adminUsers.completeRequiredFields');
     return false;
   }
 
   if (onboardingRole.value === "STUDENT" && (!request.studentId || !request.className)) {
-    errors.single = "Student onboarding requires a student ID and a class.";
+    errors.single = t('adminUsers.studentRequiresIdClass');
     return false;
   }
 
   if (onboardingRole.value === "TEACHER" && !request.employeeId) {
-    errors.single = "Teacher onboarding requires an employee ID.";
+    errors.single = t('adminUsers.teacherRequiresId');
     return false;
   }
 
@@ -714,13 +717,13 @@ function parseImportedUsers(text: string, role: ManagedRole): { users: RegisterR
 
     if (role === "STUDENT") {
       if (columns.length < 7) {
-        importErrors.push(`Row ${rowNumber} must contain at least 7 columns.`);
+        importErrors.push(t('adminUsers.rowMinimumStudent', { row: rowNumber }));
         return;
       }
 
       const [username, email, password, firstName, lastName, studentId, className, gradeLevel] = columns;
       if (!username || !email || !password || !firstName || !lastName || !studentId || !className) {
-        importErrors.push(`Row ${rowNumber} is missing a required student field.`);
+          importErrors.push(t('adminUsers.rowMissingStudent', { row: rowNumber }));
         return;
       }
 
@@ -739,13 +742,13 @@ function parseImportedUsers(text: string, role: ManagedRole): { users: RegisterR
     }
 
     if (columns.length < 6) {
-      importErrors.push(`Row ${rowNumber} must contain at least 6 columns.`);
+      importErrors.push(t('adminUsers.rowMinimumTeacher', { row: rowNumber }));
       return;
     }
 
     const [username, email, password, firstName, lastName, employeeId, department, subjects] = columns;
     if (!username || !email || !password || !firstName || !lastName || !employeeId) {
-      importErrors.push(`Row ${rowNumber} is missing a required teacher field.`);
+        importErrors.push(t('adminUsers.rowMissingTeacher', { row: rowNumber }));
       return;
     }
 
@@ -773,12 +776,12 @@ function validateDetailsStep(): boolean {
   }
 
   if (!importText.value.trim()) {
-    errors.importText = "Paste or upload at least one row before continuing.";
+    errors.importText = t('adminUsers.pasteOrUpload');
     return false;
   }
 
   if (parsedImport.value.errors.length > 0 || parsedImport.value.users.length === 0) {
-    errors.importText = parsedImport.value.errors[0] || "No valid import rows were found.";
+    errors.importText = parsedImport.value.errors[0] || t('adminUsers.noValidRows');
     return false;
   }
 
@@ -806,7 +809,7 @@ function selectStep(stepId: string) {
   }
 
   if (targetIndex > currentStepIndex.value && !validateStep()) {
-    uiStore.showToast({ type: "error", message: "Complete the current step before moving on." });
+    uiStore.showToast({ type: "error", message: t('wizard.completeCurrentStep') });
     return;
   }
 
@@ -819,7 +822,7 @@ function selectStep(stepId: string) {
 
 function goToNextStepWithValidation() {
   if (!validateStep()) {
-    uiStore.showToast({ type: "error", message: "Please fix the highlighted issues first." });
+    uiStore.showToast({ type: "error", message: t('wizard.fixHighlightedIssues') });
     return;
   }
 
@@ -840,7 +843,7 @@ async function handleCsvUpload(event: Event) {
 async function submitWizard() {
   const allStepsValid = wizardSteps.value.every((step) => validateStep(step.id));
   if (!allStepsValid) {
-    uiStore.showToast({ type: "error", message: "Complete the wizard before submitting." });
+    uiStore.showToast({ type: "error", message: t('wizard.completeWizard') });
     return;
   }
 
@@ -866,13 +869,13 @@ async function submitWizard() {
       type: "success",
       message:
         payload.length === 1
-          ? `${onboardingRole.value === "STUDENT" ? "Student" : "Teacher"} created successfully.`
-          : `${payload.length} users imported successfully.`,
+          ? t('adminUsers.singleCreated', { role: onboardingRole.value === "STUDENT" ? t('roles.STUDENT') : t('roles.TEACHER') })
+          : t('adminUsers.importedSuccess', { count: payload.length }),
     });
   } catch (err: any) {
     uiStore.showToast({
       type: "error",
-      message: err.response?.data?.message || "Failed to create the users.",
+      message: err.response?.data?.message || t('adminUsers.createFailed'),
     });
   } finally {
     submitting.value = false;
@@ -881,10 +884,10 @@ async function submitWizard() {
 
 onMounted(() => {
   uiStore.setBreadcrumbs([
-    { label: "Dashboard", route: "/admin/dashboard" },
-    { label: "Users" },
+    { label: t('nav.dashboard'), route: "/admin/dashboard" },
+    { label: t('nav.users') },
   ]);
-  uiStore.setPageTitle("Users");
+  uiStore.setPageTitle(t('adminUsers.title'));
   resetSingleForm();
   loadUsers();
 });

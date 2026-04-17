@@ -1,49 +1,51 @@
 <template>
   <div class="admin-profile">
-    <h1>Profile</h1>
+    <h1>{{ t('adminProfile.title') }}</h1>
 
     <div v-if="user" class="profile-card">
       <div class="avatar">{{ initials }}</div>
 
       <div class="profile-fields">
         <div class="field">
-          <label>Username</label>
+          <label>{{ t('common.username') }}</label>
           <span>{{ user.username }}</span>
         </div>
         <div class="field">
-          <label>Email</label>
+          <label>{{ t('common.email') }}</label>
           <span>{{ user.email }}</span>
         </div>
         <div class="field">
-          <label>Role</label>
-          <span class="role-badge">{{ user.role }}</span>
+          <label>{{ t('common.role') }}</label>
+          <span class="role-badge">{{ t(`roles.${user.role}`) }}</span>
         </div>
         <div v-if="user.firstName || user.lastName" class="field">
-          <label>Name</label>
+          <label>{{ t('common.name') }}</label>
           <span>{{ user.firstName }} {{ user.lastName }}</span>
         </div>
         <div v-if="user.department" class="field">
-          <label>Department</label>
+          <label>{{ t('common.department') }}</label>
           <span>{{ user.department }}</span>
         </div>
         <div v-if="user.createdAt" class="field">
-          <label>Member Since</label>
-          <span>{{ new Date(user.createdAt).toLocaleDateString('de-DE') }}</span>
+          <label>{{ t('adminProfile.memberSince') }}</label>
+          <span>{{ new Date(user.createdAt).toLocaleDateString(localeCode) }}</span>
         </div>
       </div>
 
       <div class="profile-actions">
-        <BaseButton variant="danger" @click="handleLogout">🚪 Logout</BaseButton>
+        <BaseButton variant="danger" @click="handleLogout">🚪 {{ t('common.logout') }}</BaseButton>
       </div>
     </div>
 
-    <div v-else class="loading">Loading profile...</div>
+    <div v-else class="loading">{{ t('adminProfile.loading') }}</div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useLocale } from '@/composables/useLocale';
+import { toIntlLocale } from '@/locales';
 import { useAuthStore } from '@/stores/authStore';
 import { useUiStore } from '@/stores/uiStore';
 import BaseButton from '@/components/common/BaseButton.vue';
@@ -51,6 +53,8 @@ import BaseButton from '@/components/common/BaseButton.vue';
 const authStore = useAuthStore();
 const uiStore = useUiStore();
 const router = useRouter();
+const { t, language } = useLocale();
+const localeCode = computed(() => toIntlLocale(language.value));
 
 const user = computed(() => authStore.currentUser);
 
@@ -68,10 +72,10 @@ async function handleLogout() {
 
 onMounted(() => {
   uiStore.setBreadcrumbs([
-    { label: 'Dashboard', route: '/admin/dashboard' },
-    { label: 'Profile' },
+    { label: t('nav.dashboard'), route: '/admin/dashboard' },
+    { label: t('nav.profile') },
   ]);
-  uiStore.setPageTitle('Profile');
+  uiStore.setPageTitle(t('adminProfile.title'));
 });
 </script>
 

@@ -1,7 +1,7 @@
 <template>
   <div class="wizard-actions-row">
     <BaseButton variant="secondary" :disabled="isFirstStep || submitting" @click="$emit('back')">
-      {{ backLabel }}
+      {{ resolvedBackLabel }}
     </BaseButton>
 
     <div class="wizard-actions-right">
@@ -12,7 +12,7 @@
         :disabled="nextDisabled || submitting"
         @click="$emit('next')"
       >
-        {{ nextLabel }}
+        {{ resolvedNextLabel }}
       </BaseButton>
 
       <BaseButton
@@ -21,16 +21,18 @@
         :disabled="submitDisabled"
         @click="$emit('submit')"
       >
-        {{ submitLabel }}
+        {{ resolvedSubmitLabel }}
       </BaseButton>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useLocale } from '@/composables/useLocale';
 import BaseButton from "@/components/common/BaseButton.vue";
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     isFirstStep: boolean;
     isLastStep: boolean;
@@ -45,9 +47,6 @@ withDefaults(
     nextDisabled: false,
     submitDisabled: false,
     submitting: false,
-    backLabel: "Back",
-    nextLabel: "Next",
-    submitLabel: "Save",
   },
 );
 
@@ -56,6 +55,12 @@ defineEmits<{
   next: [];
   submit: [];
 }>();
+
+const { t } = useLocale();
+
+const resolvedBackLabel = computed(() => props.backLabel ?? t('wizard.back'));
+const resolvedNextLabel = computed(() => props.nextLabel ?? t('wizard.next'));
+const resolvedSubmitLabel = computed(() => props.submitLabel ?? t('wizard.save'));
 </script>
 
 <style scoped>

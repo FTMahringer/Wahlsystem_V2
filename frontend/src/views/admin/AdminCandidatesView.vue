@@ -2,26 +2,26 @@
   <div class="admin-candidates">
     <div class="header">
       <div>
-        <h1>Candidates</h1>
+        <h1>{{ t('adminCandidates.title') }}</h1>
         <p v-if="election" class="election-name">{{ election.title }}</p>
       </div>
-      <BaseButton @click="showAddForm = true">➕ Add Candidate</BaseButton>
+      <BaseButton @click="showAddForm = true">➕ {{ t('adminCandidates.addCandidate') }}</BaseButton>
     </div>
 
     <!-- Loading -->
-    <div v-if="loading" class="loading">Loading candidates...</div>
+    <div v-if="loading" class="loading">{{ t('adminCandidates.loading') }}</div>
 
     <!-- Error -->
     <div v-else-if="error" class="error-state">
       <p>{{ error }}</p>
-      <BaseButton @click="loadData">Retry</BaseButton>
+      <BaseButton @click="loadData">{{ t('common.retry') }}</BaseButton>
     </div>
 
     <!-- Empty -->
     <BaseEmptyState
       v-else-if="candidates.length === 0"
-      title="No candidates yet"
-      message="Add candidates to this election."
+      :title="t('adminCandidates.emptyTitle')"
+      :message="t('adminCandidates.emptyMessage')"
       icon="👤"
     />
 
@@ -30,17 +30,17 @@
       <table>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Class</th>
-            <th>Description</th>
-            <th>Actions</th>
+            <th>{{ t('common.name') }}</th>
+            <th>{{ t('common.class') }}</th>
+            <th>{{ t('common.description') }}</th>
+            <th>{{ t('common.actions') }}</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="candidate in candidates" :key="candidate.id">
             <td class="name-cell">{{ candidate.firstName }} {{ candidate.lastName }}</td>
-            <td>{{ candidate.className || '—' }}</td>
-            <td>{{ candidate.description || '—' }}</td>
+            <td>{{ candidate.className || t('common.notAvailable') }}</td>
+            <td>{{ candidate.description || t('common.notAvailable') }}</td>
             <td class="actions-cell">
               <BaseButton size="sm" variant="ghost" @click="startEdit(candidate)">✏️</BaseButton>
               <BaseButton size="sm" variant="ghost" @click="confirmDelete(candidate)">🗑️</BaseButton>
@@ -53,32 +53,32 @@
     <!-- Add / Edit Dialog -->
     <BaseDialog
       :open="showAddForm"
-      :title="editingCandidate ? 'Edit Candidate' : 'Add Candidate'"
+      :title="editingCandidate ? t('adminCandidates.editTitle') : t('adminCandidates.addTitle')"
       @update:open="closeForm"
     >
       <form class="candidate-form" @submit.prevent="handleSave">
         <div class="form-row">
           <div class="form-group">
-            <label>First Name *</label>
+            <label>{{ t('common.firstName') }} *</label>
             <input v-model="candidateForm.firstName" type="text" required />
           </div>
           <div class="form-group">
-            <label>Last Name *</label>
+            <label>{{ t('common.lastName') }} *</label>
             <input v-model="candidateForm.lastName" type="text" required />
           </div>
         </div>
         <div class="form-group">
-          <label>Class</label>
-          <input v-model="candidateForm.className" type="text" placeholder="e.g., 10A" />
+          <label>{{ t('common.class') }}</label>
+          <input v-model="candidateForm.className" type="text" :placeholder="t('adminCandidates.classPlaceholder')" />
         </div>
         <div class="form-group">
-          <label>Description</label>
-          <textarea v-model="candidateForm.description" rows="3" placeholder="Short bio..." />
+          <label>{{ t('common.description') }}</label>
+          <textarea v-model="candidateForm.description" rows="3" :placeholder="t('adminCandidates.descriptionPlaceholder')" />
         </div>
       </form>
       <template #footer>
-        <BaseButton variant="secondary" @click="closeForm">Cancel</BaseButton>
-        <BaseButton :loading="saving" @click="handleSave">Save</BaseButton>
+        <BaseButton variant="secondary" @click="closeForm">{{ t('common.cancel') }}</BaseButton>
+        <BaseButton :loading="saving" @click="handleSave">{{ t('common.save') }}</BaseButton>
       </template>
     </BaseDialog>
   </div>
@@ -88,6 +88,7 @@
 import { ref, reactive, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { candidateApi, electionApi } from '@/api';
+import { useLocale } from '@/composables/useLocale';
 import { useUiStore } from '@/stores/uiStore';
 import type { Candidate, Election } from '@/types';
 import BaseButton from '@/components/common/BaseButton.vue';
@@ -97,6 +98,7 @@ import BaseEmptyState from '@/components/common/BaseEmptyState.vue';
 const route = useRoute();
 const uiStore = useUiStore();
 const electionId = Number(route.params.id);
+const { t } = useLocale();
 
 const election = ref<Election | null>(null);
 const candidates = ref<Candidate[]>([]);
@@ -150,7 +152,7 @@ async function handleSave() {
       });
       const idx = candidates.value.findIndex(c => c.id === updated.id);
       if (idx !== -1) candidates.value[idx] = updated;
-      uiStore.showToast({ type: 'success', message: 'Candidate updated.' });
+      uiStore.showToast({ type: 'success', message: t('adminCandidates.updatedSuccess') });
     } else {
       const created = await candidateApi.create({
         firstName: candidateForm.firstName,
@@ -160,11 +162,11 @@ async function handleSave() {
         electionId,
       });
       candidates.value.push(created);
-      uiStore.showToast({ type: 'success', message: 'Candidate added.' });
+      uiStore.showToast({ type: 'success', message: t('adminCandidates.addedSuccess') });
     }
     closeForm();
   } catch (err: any) {
-    uiStore.showToast({ type: 'error', message: err.response?.data?.message || 'Failed to save candidate.' });
+    uiStore.showToast({ type: 'error', message: err.response?.data?.message || t('adminCandidates.saveFailed') });
   } finally {
     saving.value = false;
   }
@@ -172,15 +174,15 @@ async function handleSave() {
 
 function confirmDelete(candidate: Candidate) {
   uiStore.openConfirm({
-    title: 'Delete Candidate',
-    message: `Remove "${candidate.firstName} ${candidate.lastName}" from this election?`,
+    title: t('adminCandidates.deleteTitle'),
+    message: t('adminCandidates.deleteMessage', { name: `${candidate.firstName} ${candidate.lastName}` }),
     onConfirm: async () => {
       try {
         await candidateApi.delete(candidate.id);
         candidates.value = candidates.value.filter(c => c.id !== candidate.id);
-        uiStore.showToast({ type: 'success', message: 'Candidate removed.' });
+        uiStore.showToast({ type: 'success', message: t('adminCandidates.removedSuccess') });
       } catch (err: any) {
-        uiStore.showToast({ type: 'error', message: 'Failed to delete candidate.' });
+        uiStore.showToast({ type: 'error', message: t('adminCandidates.deleteFailed') });
       }
     },
   });
@@ -197,7 +199,7 @@ async function loadData() {
     election.value = el;
     candidates.value = cands;
   } catch (err: any) {
-    error.value = err.response?.data?.message || 'Failed to load data.';
+    error.value = err.response?.data?.message || t('adminCandidates.loadFailed');
   } finally {
     loading.value = false;
   }
@@ -205,11 +207,11 @@ async function loadData() {
 
 onMounted(() => {
   uiStore.setBreadcrumbs([
-    { label: 'Dashboard', route: '/admin/dashboard' },
-    { label: 'Elections', route: '/admin/elections' },
-    { label: 'Candidates' },
+    { label: t('nav.dashboard'), route: '/admin/dashboard' },
+    { label: t('nav.elections'), route: '/admin/elections' },
+    { label: t('nav.candidates') },
   ]);
-  uiStore.setPageTitle('Candidates');
+  uiStore.setPageTitle(t('adminCandidates.title'));
   loadData();
 });
 </script>

@@ -5,7 +5,7 @@
         <div class="dialog-box" :class="[`size-${size}`]" @keydown.escape="handleEscape">
           <div class="dialog-header">
             <h2>{{ title }}</h2>
-            <button class="close-btn" @click="$emit('update:open', false)" aria-label="Close">&times;</button>
+            <button class="close-btn" @click="$emit('update:open', false)" :aria-label="t('dialogs.close')">&times;</button>
           </div>
           <div class="dialog-body">
             <slot />
@@ -21,6 +21,7 @@
 
 <script setup lang="ts">
 import { watch } from 'vue';
+import { useLocale } from '@/composables/useLocale';
 
 const props = withDefaults(defineProps<{
   open: boolean;
@@ -33,6 +34,8 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   'update:open': [value: boolean];
 }>();
+
+const { t } = useLocale();
 
 function handleBackdrop() {
   emit('update:open', false);

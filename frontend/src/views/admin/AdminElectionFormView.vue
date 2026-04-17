@@ -1,13 +1,13 @@
 <template>
   <div class="election-form-view">
     <div class="page-header">
-      <h1>{{ isEdit ? "Edit Election" : "Create Election" }}</h1>
+      <h1>{{ isEdit ? t('adminElectionForm.editTitle') : t('adminElectionForm.createTitle') }}</h1>
       <p class="page-subtitle">
-        Configure the election in guided steps so the rules, candidates, and schedule stay in sync.
+        {{ t('adminElectionForm.subtitle') }}
       </p>
     </div>
 
-    <div v-if="loadingElection" class="loading">Loading election...</div>
+    <div v-if="loadingElection" class="loading">{{ t('adminElectionForm.loading') }}</div>
 
     <WizardShell v-else>
       <template #header>
@@ -17,7 +17,7 @@
             <p v-if="currentStep?.description">{{ currentStep.description }}</p>
           </div>
           <span class="step-counter">
-            Step {{ currentStepIndex + 1 }} / {{ steps.length }}
+            {{ t('wizard.stepCounter', { current: currentStepIndex + 1, total: steps.length }) }}
           </span>
         </div>
       </template>
@@ -34,24 +34,24 @@
       <WizardStepPanel :active="currentStepId === 'basics'">
         <div class="form-grid">
           <div class="form-group">
-            <label for="title">Title *</label>
+            <label for="title">{{ t('common.title') }} *</label>
             <input
               id="title"
               v-model="form.title"
               type="text"
-              placeholder="Election title"
+              :placeholder="t('adminElectionForm.electionTitlePlaceholder')"
               :disabled="submitting"
             />
             <span v-if="errors.title" class="field-error">{{ errors.title }}</span>
           </div>
 
           <div class="form-group full-width">
-            <label for="description">Description</label>
+            <label for="description">{{ t('common.description') }}</label>
             <textarea
               id="description"
               v-model="form.description"
               rows="5"
-              placeholder="Describe the election..."
+              :placeholder="t('adminElectionForm.electionDescriptionPlaceholder')"
               :disabled="submitting"
             />
           </div>
@@ -69,25 +69,25 @@
             @click="selectElectionType(option)"
           >
             <div class="type-card-header">
-              <strong>{{ getElectionTypeDefinition(option).label }}</strong>
+              <strong>{{ getElectionTypeDefinition(option, t).label }}</strong>
               <span class="type-card-badge">
-                {{ getElectionTypeDefinition(option).resultMetricLabel }}
+                {{ getElectionTypeDefinition(option, t).resultMetricLabel }}
               </span>
             </div>
-            <p>{{ getElectionTypeDefinition(option).description }}</p>
-            <small>{{ getElectionTypeDefinition(option).helperText }}</small>
+            <p>{{ getElectionTypeDefinition(option, t).description }}</p>
+            <small>{{ getElectionTypeDefinition(option, t).helperText }}</small>
           </button>
         </div>
 
         <div class="type-config">
           <div v-if="selectedType.requiresMaxSelections" class="form-group compact">
-            <label for="maxSelections">Maximum selections *</label>
+            <label for="maxSelections">{{ t('adminElectionForm.selectionLimit') }} *</label>
             <input
               id="maxSelections"
               v-model.number="form.maxSelections"
               type="number"
               min="1"
-              placeholder="e.g. 2"
+              :placeholder="t('adminElectionForm.maxSelectionsPlaceholder')"
               :disabled="submitting"
             />
             <span v-if="errors.maxSelections" class="field-error">
@@ -97,19 +97,19 @@
 
           <div class="type-hints">
             <p v-if="form.type === 'BINARY_CHOICE'">
-              Binary choice elections must contain exactly two candidates.
+              {{ t('adminElectionForm.binaryHint') }}
             </p>
             <p v-else-if="form.type === 'BORDA_COUNT'">
-              Voters will rank all candidates and results are counted as points.
+              {{ t('adminElectionForm.bordaHint') }}
             </p>
             <p v-else-if="form.type === 'APPROVAL_VOTING'">
-              Voters can approve any number of candidates.
+              {{ t('adminElectionForm.approvalHint') }}
             </p>
             <p v-else-if="form.type === 'LIMITED_VOTE'">
-              Voters can choose up to the configured number of candidates.
+              {{ t('adminElectionForm.limitedHint') }}
             </p>
             <p v-else>
-              Voters choose exactly one candidate.
+              {{ t('adminElectionForm.singleHint') }}
             </p>
           </div>
         </div>
@@ -118,18 +118,18 @@
       <WizardStepPanel :active="currentStepId === 'candidates'">
         <div class="candidate-step-header">
           <div>
-            <h3>Candidates</h3>
+            <h3>{{ t('adminElectionForm.candidatesTitle') }}</h3>
             <p>
-              Add the people or options that should appear on the ballot.
+              {{ t('adminElectionForm.candidatesIntro') }}
             </p>
           </div>
           <BaseButton variant="secondary" @click="addCandidate">
-            + Add Candidate
+            + {{ t('adminElectionForm.addCandidate') }}
           </BaseButton>
         </div>
 
         <div v-if="candidateDrafts.length === 0" class="candidate-empty">
-          No candidates yet. Add at least two to continue.
+          {{ t('adminElectionForm.noCandidates') }}
         </div>
 
         <div v-else class="candidate-drafts">
@@ -139,41 +139,41 @@
             class="candidate-draft"
           >
             <div class="candidate-draft-header">
-              <strong>Candidate {{ index + 1 }}</strong>
+              <strong>{{ t('adminElectionForm.candidateNumber', { number: index + 1 }) }}</strong>
               <BaseButton
                 variant="ghost"
                 size="sm"
                 :disabled="submitting"
                 @click="removeCandidate(candidate.tempId)"
               >
-                Remove
+                {{ t('common.remove') }}
               </BaseButton>
             </div>
 
             <div class="form-grid">
               <div class="form-group">
-                <label>First Name *</label>
+                <label>{{ t('common.firstName') }} *</label>
                 <input v-model="candidate.firstName" type="text" :disabled="submitting" />
               </div>
               <div class="form-group">
-                <label>Last Name *</label>
+                <label>{{ t('common.lastName') }} *</label>
                 <input v-model="candidate.lastName" type="text" :disabled="submitting" />
               </div>
               <div class="form-group">
-                <label>Class</label>
+                <label>{{ t('common.class') }}</label>
                 <input
                   v-model="candidate.className"
                   type="text"
-                  placeholder="e.g. 10A"
+                  :placeholder="t('adminElectionForm.classPlaceholder')"
                   :disabled="submitting"
                 />
               </div>
               <div class="form-group full-width">
-                <label>Description</label>
+                <label>{{ t('common.description') }}</label>
                 <textarea
                   v-model="candidate.description"
                   rows="3"
-                  placeholder="Short description..."
+                  :placeholder="t('adminElectionForm.shortDescriptionPlaceholder')"
                   :disabled="submitting"
                 />
               </div>
@@ -187,7 +187,7 @@
       <WizardStepPanel :active="currentStepId === 'schedule'">
         <div class="form-grid schedule-grid">
           <div class="form-group">
-            <label for="startAt">Start Date</label>
+            <label for="startAt">{{ t('common.start') }}</label>
             <input
               id="startAt"
               v-model="form.startAt"
@@ -197,7 +197,7 @@
           </div>
 
           <div class="form-group">
-            <label for="endAt">End Date</label>
+            <label for="endAt">{{ t('common.end') }}</label>
             <input
               id="endAt"
               v-model="form.endAt"
@@ -210,9 +210,7 @@
 
         <div class="schedule-note">
           <p>
-            Saving as draft keeps the election hidden. Publishing sets the status automatically:
-            future dates become <strong>planned</strong>, otherwise the election becomes
-            <strong>active</strong>.
+            {{ t('adminElectionForm.scheduleNote') }}
           </p>
         </div>
       </WizardStepPanel>
@@ -220,39 +218,39 @@
       <WizardStepPanel :active="currentStepId === 'review'">
         <div class="review-grid">
           <div class="review-card">
-            <h3>Basics</h3>
+            <h3>{{ t('adminElectionForm.basicsTitle') }}</h3>
             <dl>
               <div>
-                <dt>Title</dt>
-                <dd>{{ form.title || "—" }}</dd>
+                <dt>{{ t('common.title') }}</dt>
+                <dd>{{ form.title || t('common.notAvailable') }}</dd>
               </div>
               <div>
-                <dt>Description</dt>
-                <dd>{{ form.description || "—" }}</dd>
+                <dt>{{ t('common.description') }}</dt>
+                <dd>{{ form.description || t('common.notAvailable') }}</dd>
               </div>
             </dl>
           </div>
 
           <div class="review-card">
-            <h3>Election Type</h3>
+            <h3>{{ t('adminElectionForm.typeTitle') }}</h3>
             <dl>
               <div>
-                <dt>Type</dt>
+                <dt>{{ t('common.type') }}</dt>
                 <dd>{{ selectedType.label }}</dd>
               </div>
               <div v-if="form.type === 'LIMITED_VOTE'">
-                <dt>Selection limit</dt>
+                <dt>{{ t('adminElectionForm.selectionLimit') }}</dt>
                 <dd>{{ form.maxSelections }}</dd>
               </div>
               <div>
-                <dt>Result metric</dt>
+                <dt>{{ t('adminElectionForm.resultMetric') }}</dt>
                 <dd>{{ selectedType.resultMetricLabel }}</dd>
               </div>
             </dl>
           </div>
 
           <div class="review-card">
-            <h3>Candidates</h3>
+            <h3>{{ t('adminElectionForm.candidatesTitle') }}</h3>
             <ul class="review-list">
               <li v-for="candidate in candidateDrafts" :key="candidate.tempId">
                 {{ candidate.firstName }} {{ candidate.lastName }}
@@ -262,18 +260,18 @@
           </div>
 
           <div class="review-card">
-            <h3>Schedule</h3>
+            <h3>{{ t('adminElectionForm.scheduleTitle') }}</h3>
             <dl>
               <div>
-                <dt>Start</dt>
+                <dt>{{ t('common.start') }}</dt>
                 <dd>{{ formatDateTime(form.startAt) }}</dd>
               </div>
               <div>
-                <dt>End</dt>
+                <dt>{{ t('common.end') }}</dt>
                 <dd>{{ formatDateTime(form.endAt) }}</dd>
               </div>
               <div>
-                <dt>Publish outcome</dt>
+                <dt>{{ t('adminElectionForm.publishOutcome') }}</dt>
                 <dd>{{ publishOutcomeLabel }}</dd>
               </div>
             </dl>
@@ -286,7 +284,7 @@
           :is-first-step="isFirstStep"
           :is-last-step="isLastStep"
           :submitting="submitting"
-          :submit-label="isEdit ? 'Save and Publish' : 'Create and Publish'"
+          :submit-label="isEdit ? t('adminElectionForm.saveAndPublish') : t('adminElectionForm.createAndPublish')"
           @back="goToPreviousStep"
           @next="goToNextStepWithValidation"
           @submit="handleSubmit('publish')"
@@ -297,10 +295,10 @@
               :disabled="submitting"
               @click="handleSubmit('draft')"
             >
-              {{ isEdit ? "Save Draft" : "Create Draft" }}
+              {{ isEdit ? t('adminElectionForm.saveDraft') : t('adminElectionForm.createDraft') }}
             </BaseButton>
             <BaseButton variant="ghost" :disabled="submitting" @click="router.push('/admin/elections')">
-              Cancel
+              {{ t('common.cancel') }}
             </BaseButton>
           </template>
         </WizardActions>
@@ -318,7 +316,9 @@ import WizardActions from "@/components/common/wizard/WizardActions.vue";
 import WizardShell from "@/components/common/wizard/WizardShell.vue";
 import WizardStepNav from "@/components/common/wizard/WizardStepNav.vue";
 import WizardStepPanel from "@/components/common/wizard/WizardStepPanel.vue";
+import { useLocale } from "@/composables/useLocale";
 import { useWizard, type WizardStepDefinition } from "@/composables/useWizard";
+import { toIntlLocale } from "@/locales";
 import { useElectionStore } from "@/stores/electionStore";
 import { useUiStore } from "@/stores/uiStore";
 import {
@@ -343,36 +343,38 @@ const route = useRoute();
 const router = useRouter();
 const electionStore = useElectionStore();
 const uiStore = useUiStore();
+const { t, language } = useLocale();
+const localeCode = computed(() => toIntlLocale(language.value));
 
 const isEdit = computed(() => !!route.params.id);
 const loadingElection = ref(false);
 const submitting = ref(false);
 
-const steps = ref<WizardStepDefinition[]>([
+const steps = computed<WizardStepDefinition[]>(() => [
   {
     id: "basics",
-    title: "Basics",
-    description: "Set the election title and the voter-facing description.",
+    title: t('adminElectionForm.basicsTitle'),
+    description: t('adminElectionForm.basicsDescription'),
   },
   {
     id: "type",
-    title: "Election Type",
-    description: "Choose the ballot style and type-specific rules.",
+    title: t('adminElectionForm.typeTitle'),
+    description: t('adminElectionForm.typeDescription'),
   },
   {
     id: "candidates",
-    title: "Candidates",
-    description: "Add the ballot entries and keep them in the right order.",
+    title: t('adminElectionForm.candidatesTitle'),
+    description: t('adminElectionForm.candidatesDescription'),
   },
   {
     id: "schedule",
-    title: "Schedule",
-    description: "Define when the election starts, ends, and becomes visible.",
+    title: t('adminElectionForm.scheduleTitle'),
+    description: t('adminElectionForm.scheduleDescription'),
   },
   {
     id: "review",
-    title: "Review",
-    description: "Check the configuration before saving the election.",
+    title: t('adminElectionForm.reviewTitle'),
+    description: t('adminElectionForm.reviewDescription'),
   },
 ]);
 
@@ -413,16 +415,16 @@ const errors = reactive<Record<string, string>>({});
 const candidateDrafts = ref<CandidateDraft[]>([]);
 const originalCandidates = ref<Candidate[]>([]);
 
-const selectedType = computed(() => getElectionTypeDefinition(form.type));
+const selectedType = computed(() => getElectionTypeDefinition(form.type, t));
 const publishOutcomeLabel = computed(() => {
   const publishStatus = derivePublishStatus();
   switch (publishStatus) {
     case "PLANNED":
-      return "Planned";
+      return t('adminElectionForm.publishStatus.PLANNED');
     case "ENDED":
-      return "Ended";
+      return t('adminElectionForm.publishStatus.ENDED');
     default:
-      return "Active";
+      return t('adminElectionForm.publishStatus.ACTIVE');
   }
 });
 
@@ -467,7 +469,7 @@ function validateBasicsStep(): boolean {
   clearStepErrors(["title"]);
 
   if (!form.title.trim()) {
-    errors.title = "Title is required.";
+    errors.title = t('adminElectionForm.titleRequired');
     return false;
   }
 
@@ -478,8 +480,8 @@ function validateTypeStep(): boolean {
   clearStepErrors(["maxSelections"]);
 
   if (form.type === "LIMITED_VOTE") {
-    if (!form.maxSelections || form.maxSelections < 1) {
-      errors.maxSelections = "Set a selection limit of at least 1.";
+      if (!form.maxSelections || form.maxSelections < 1) {
+        errors.maxSelections = t('adminElectionForm.minSelectionLimit');
       return false;
     }
   }
@@ -491,12 +493,12 @@ function validateCandidatesStep(): boolean {
   clearStepErrors(["candidates"]);
 
   if (candidateDrafts.value.length < 2) {
-    errors.candidates = "Add at least two candidates.";
+    errors.candidates = t('adminElectionForm.minCandidates');
     return false;
   }
 
   if (form.type === "BINARY_CHOICE" && candidateDrafts.value.length !== 2) {
-    errors.candidates = "Binary choice elections require exactly two candidates.";
+    errors.candidates = t('adminElectionForm.binaryNeedsTwo');
     return false;
   }
 
@@ -505,7 +507,7 @@ function validateCandidatesStep(): boolean {
     form.maxSelections !== null &&
     form.maxSelections >= candidateDrafts.value.length
   ) {
-    errors.candidates = "The selection limit must be lower than the number of candidates.";
+    errors.candidates = t('adminElectionForm.selectionLimitLower');
     return false;
   }
 
@@ -516,7 +518,7 @@ function validateCandidatesStep(): boolean {
   );
 
   if (hasInvalidCandidate) {
-    errors.candidates = "Each candidate needs a first and last name.";
+    errors.candidates = t('adminElectionForm.candidateNeedsName');
     return false;
   }
 
@@ -527,7 +529,7 @@ function validateScheduleStep(): boolean {
   clearStepErrors(["endAt"]);
 
   if (form.startAt && form.endAt && new Date(form.endAt) <= new Date(form.startAt)) {
-    errors.endAt = "End date must be after the start date.";
+    errors.endAt = t('adminElectionForm.endAfterStart');
     return false;
   }
 
@@ -557,7 +559,7 @@ function handleStepSelect(stepId: string) {
   }
 
   if (targetIndex > currentStepIndex.value && !validateStep()) {
-    uiStore.showToast({ type: "error", message: "Complete the current step before moving on." });
+    uiStore.showToast({ type: "error", message: t('wizard.completeCurrentStep') });
     return;
   }
 
@@ -570,7 +572,7 @@ function handleStepSelect(stepId: string) {
 
 function goToNextStepWithValidation() {
   if (!validateStep()) {
-    uiStore.showToast({ type: "error", message: "Please fix the highlighted fields first." });
+    uiStore.showToast({ type: "error", message: t('wizard.fixHighlightedIssues') });
     return;
   }
 
@@ -635,7 +637,7 @@ async function syncCandidates(electionId: number) {
 async function handleSubmit(mode: "draft" | "publish") {
   const allStepsValid = steps.value.every((step) => validateStep(step.id));
   if (!allStepsValid) {
-    uiStore.showToast({ type: "error", message: "Please complete all steps before saving." });
+    uiStore.showToast({ type: "error", message: t('wizard.completeWizard') });
     return;
   }
 
@@ -648,21 +650,21 @@ async function handleSubmit(mode: "draft" | "publish") {
       : await electionStore.create(payload);
 
     if (!result) {
-      throw new Error(electionStore.error || "Failed to save election.");
+      throw new Error(electionStore.error || t('adminElectionForm.saveFailed'));
     }
 
     await syncCandidates(result.id);
     uiStore.showToast({
       type: "success",
       message: isEdit.value
-        ? "Election updated successfully."
-        : "Election created successfully.",
+        ? t('adminElectionForm.updatedSuccess')
+        : t('adminElectionForm.createdSuccess'),
     });
     router.push("/admin/elections");
   } catch (error: any) {
     uiStore.showToast({
       type: "error",
-      message: error?.response?.data?.message || error?.message || "Failed to save election.",
+      message: error?.response?.data?.message || error?.message || t('adminElectionForm.saveFailed'),
     });
   } finally {
     submitting.value = false;
@@ -671,9 +673,9 @@ async function handleSubmit(mode: "draft" | "publish") {
 
 function formatDateTime(value: string): string {
   if (!value) {
-    return "—";
+    return t('common.notAvailable');
   }
-  return new Date(value).toLocaleString("de-DE");
+  return new Date(value).toLocaleString(localeCode.value);
 }
 
 function mapCandidateToDraft(candidate: Candidate): CandidateDraft {
@@ -689,11 +691,11 @@ function mapCandidateToDraft(candidate: Candidate): CandidateDraft {
 
 onMounted(async () => {
   uiStore.setBreadcrumbs([
-    { label: "Dashboard", route: "/admin/dashboard" },
-    { label: "Elections", route: "/admin/elections" },
-    { label: isEdit.value ? "Edit" : "Create" },
+    { label: t('nav.dashboard'), route: "/admin/dashboard" },
+    { label: t('nav.elections'), route: "/admin/elections" },
+    { label: isEdit.value ? t('adminElectionForm.editBreadcrumb') : t('adminElectionForm.createBreadcrumb') },
   ]);
-  uiStore.setPageTitle(isEdit.value ? "Edit Election" : "Create Election");
+  uiStore.setPageTitle(isEdit.value ? t('adminElectionForm.editTitle') : t('adminElectionForm.createTitle'));
 
   if (!isEdit.value) {
     addCandidate();

@@ -2,19 +2,21 @@
   <div class="vote-success">
     <div class="success-card">
       <div class="icon">🎉</div>
-      <h1>Vote Submitted!</h1>
-      <p>Your vote has been recorded successfully.</p>
-      <p class="sub-text">Thank you for participating in this election.</p>
+      <h1>{{ t('voter.successTitle') }}</h1>
+      <p>{{ t('voter.successMessage') }}</p>
+      <p class="sub-text">{{ t('voter.successThanks') }}</p>
 
-      <button class="btn" @click="finish">Done</button>
+      <button class="btn" @click="finish">{{ t('common.done') }}</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
+import { useLocale } from '@/composables/useLocale';
 
 const router = useRouter();
+const { t } = useLocale();
 
 function finish() {
   // Clear all voter session data

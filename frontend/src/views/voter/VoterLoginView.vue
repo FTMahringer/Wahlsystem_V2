@@ -2,8 +2,8 @@
   <div class="voter-login">
     <div class="login-card">
       <div class="logo">🗳️</div>
-      <h1>Wahlsystem</h1>
-      <p>Enter your voting token to participate</p>
+      <h1>{{ t('app.name') }}</h1>
+      <p>{{ t('voter.loginTitle') }}</p>
 
       <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
 
@@ -12,7 +12,7 @@
           <input
             v-model="token"
             type="text"
-            placeholder="Enter your voting token"
+            :placeholder="t('voter.tokenPlaceholder')"
             required
             :disabled="loading"
             autocomplete="off"
@@ -20,12 +20,12 @@
         </div>
 
         <button type="submit" :disabled="!token.trim() || loading">
-          {{ loading ? 'Verifying...' : 'Continue' }}
+          {{ loading ? t('voter.verifying') : t('voter.continue') }}
         </button>
       </form>
 
       <div class="admin-link">
-        <router-link to="/admin/login">Admin Login</router-link>
+        <router-link to="/admin/login">{{ t('voter.adminLogin') }}</router-link>
       </div>
     </div>
   </div>
@@ -35,11 +35,13 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { authApi } from '@/api';
+import { useLocale } from '@/composables/useLocale';
 
 const token = ref('');
 const loading = ref(false);
 const errorMsg = ref('');
 const router = useRouter();
+const { t } = useLocale();
 
 async function handleLogin() {
   if (!token.value.trim()) return;
@@ -53,7 +55,7 @@ async function handleLogin() {
     sessionStorage.setItem('voter_election_id', String(result.electionId));
     router.push(`/vote/election/${result.electionId}`);
   } catch (err: any) {
-    errorMsg.value = err.response?.data?.message || 'Invalid or expired token. Please try again.';
+    errorMsg.value = err.response?.data?.message || t('voter.invalidToken');
   } finally {
     loading.value = false;
   }

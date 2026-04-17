@@ -2,36 +2,36 @@
   <div class="vote-confirm">
     <div class="confirm-card">
       <div class="icon">✅</div>
-      <h1>Confirm Your Vote</h1>
+      <h1>{{ t('voter.confirmTitle') }}</h1>
 
       <div v-if="ballot" class="vote-details">
         <div class="detail-row">
-          <span class="label">Election</span>
+          <span class="label">{{ t('voter.election') }}</span>
           <span class="value">{{ ballot.electionTitle }}</span>
         </div>
         <div class="detail-row">
-          <span class="label">Type</span>
-          <span class="value">{{ getElectionTypeDefinition(ballot.electionType).label }}</span>
+          <span class="label">{{ t('voter.selectionType') }}</span>
+          <span class="value">{{ getElectionTypeDefinition(ballot.electionType, t).label }}</span>
         </div>
       </div>
 
       <div v-if="ballot" class="selection-summary">
-        <h2>Your Selection</h2>
+        <h2>{{ t('voter.yourSelection') }}</h2>
         <ul>
           <li v-for="item in ballot.summary" :key="item">{{ item }}</li>
         </ul>
       </div>
 
-      <p class="warning">⚠️ This action cannot be undone. Your vote is final.</p>
+      <p class="warning">⚠️ {{ t('voter.finalWarning') }}</p>
 
       <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
 
       <div class="actions">
         <button class="btn btn-secondary" :disabled="submitting" @click="goBack">
-          ← Go Back
+          ← {{ t('voter.goBack') }}
         </button>
         <button class="btn btn-primary" :disabled="submitting || !ballot" @click="submitVote">
-          {{ submitting ? "Submitting..." : "🗳️ Submit Vote" }}
+          {{ submitting ? t('voter.submittingVote') : `🗳️ ${t('voter.submitVote')}` }}
         </button>
       </div>
     </div>
@@ -42,6 +42,7 @@
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { voteApi } from "@/api";
+import { useLocale } from "@/composables/useLocale";
 import { getElectionTypeDefinition, type Election } from "@/types";
 
 interface StoredVoteBallot {
@@ -59,6 +60,7 @@ const submitting = ref(false);
 const errorMsg = ref("");
 const ballot = ref<StoredVoteBallot | null>(null);
 const voterToken = ref("");
+const { t } = useLocale();
 
 function goBack() {
   router.back();
@@ -66,7 +68,7 @@ function goBack() {
 
 async function submitVote() {
   if (!ballot.value || !voterToken.value) {
-    errorMsg.value = "Missing vote data. Please go back and try again.";
+    errorMsg.value = t('voter.missingVoteData');
     return;
   }
 
@@ -84,7 +86,7 @@ async function submitVote() {
     sessionStorage.removeItem("vote_ballot");
     router.push("/vote/success");
   } catch (err: any) {
-    errorMsg.value = err.response?.data?.message || "Failed to submit vote. Please try again.";
+    errorMsg.value = err.response?.data?.message || t('voter.submitVoteFailed');
   } finally {
     submitting.value = false;
   }

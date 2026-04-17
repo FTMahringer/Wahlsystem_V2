@@ -4,7 +4,7 @@
     <!-- Logo -->
     <div class="sidebar-logo">
       <div class="logo-icon-wrap">🗳️</div>
-      <span v-if="!uiStore.sidebarCollapsed" class="logo-text">Wahlsystem</span>
+      <span v-if="!uiStore.sidebarCollapsed" class="logo-text">{{ t('app.name') }}</span>
     </div>
 
     <!-- Main nav -->
@@ -37,6 +37,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useUiStore } from '@/stores/uiStore';
+import { useLocale } from '@/composables/useLocale';
 import { useRole } from '@/composables/useRole';
 import type { DashNavItem } from '@/types';
 import SidebarItem from './SidebarItem.vue';
@@ -44,65 +45,66 @@ import SidebarGroup from './SidebarGroup.vue';
 
 const uiStore = useUiStore();
 const { hasAnyRole } = useRole();
+const { t } = useLocale();
 
 const BOTTOM_IDS = new Set(['settings', 'profile']);
 
-const allNavItems: DashNavItem[] = [
+const allNavItems = computed<DashNavItem[]>(() => [
   {
     id: 'dashboard',
-    label: 'Dashboard',
+    label: t('nav.dashboard'),
     icon: '📊',
     route: '/admin/dashboard',
   },
   {
     id: 'elections',
-    label: 'Elections',
+    label: t('nav.elections'),
     icon: '🗳️',
     children: [
-      { id: 'elections-active', label: 'Active Elections', icon: '▶', route: '/admin/elections?status=ACTIVE' },
-      { id: 'elections-all',    label: 'All Elections',    icon: '📋', route: '/admin/elections' },
-      { id: 'elections-create', label: 'Create Election',  icon: '➕', route: '/admin/elections/create' },
+      { id: 'elections-active', label: t('nav.activeElections'), icon: '▶', route: '/admin/elections?status=ACTIVE' },
+      { id: 'elections-all', label: t('nav.allElections'), icon: '📋', route: '/admin/elections' },
+      { id: 'elections-create', label: t('nav.createElection'), icon: '➕', route: '/admin/elections/create' },
     ],
   },
   {
     id: 'candidates',
-    label: 'Candidates',
+    label: t('nav.candidates'),
     icon: '👤',
     route: '/admin/candidates',
   },
   {
     id: 'voters',
-    label: 'Voters',
+    label: t('nav.voters'),
     icon: '👥',
     route: '/admin/voters',
   },
   {
     id: 'results',
-    label: 'Results',
+    label: t('nav.results'),
     icon: '📈',
     route: '/admin/results',
   },
   {
     id: 'audit',
-    label: 'Audit Logs',
+    label: t('nav.audit'),
     icon: '🔍',
     route: '/admin/audit',
     roles: ['ADMIN'],
   },
   {
     id: 'settings',
-    label: 'Settings',
+    label: t('nav.settings'),
     icon: '⚙️',
     route: '/admin/settings',
     roles: ['ADMIN'],
   },
   {
     id: 'profile',
-    label: 'Profile',
+    label: t('nav.profile'),
     icon: '👤',
     route: '/admin/profile',
   },
-];
+]);
 
 function isVisible(item: DashNavItem) {
   if (item.hidden) return false;
@@ -110,15 +112,15 @@ function isVisible(item: DashNavItem) {
   return true;
 }
 
-const mainItems   = computed(() => allNavItems.filter(i => !BOTTOM_IDS.has(i.id) && isVisible(i)));
-const bottomItems = computed(() => allNavItems.filter(i =>  BOTTOM_IDS.has(i.id) && isVisible(i)));
+const mainItems = computed(() => allNavItems.value.filter(i => !BOTTOM_IDS.has(i.id) && isVisible(i)));
+const bottomItems = computed(() => allNavItems.value.filter(i => BOTTOM_IDS.has(i.id) && isVisible(i)));
 </script>
 
 <style scoped>
 .app-sidebar {
   width: var(--sidebar-width, 240px);
   height: 100vh;
-  background: #131525;
+  background: var(--color-sidebar-bg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -157,7 +159,7 @@ const bottomItems = computed(() => allNavItems.filter(i =>  BOTTOM_IDS.has(i.id)
 .logo-text {
   font-weight: 700;
   font-size: 1.05rem;
-  color: #fff;
+  color: var(--color-sidebar-text);
   letter-spacing: 0.01em;
 }
 

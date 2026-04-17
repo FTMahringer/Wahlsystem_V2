@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { authApi } from '@/api';
+import { translate } from '@/locales';
 import type { User, LoginCredentials, RegisterRequest, AuthResponse } from '@/types';
 
 // sessionStorage: cleared when the tab/browser is closed
@@ -40,7 +41,7 @@ export const useAuthStore = defineStore('auth', () => {
       const msg = err.response?.data?.message || err.response?.data || '';
       error.value = typeof msg === 'string' && msg.length > 0
         ? msg
-        : 'Login failed. Please check your credentials.';
+        : translate('auth.loginFailed');
       return false;
     } finally {
       loading.value = false;
@@ -59,7 +60,7 @@ export const useAuthStore = defineStore('auth', () => {
       const msg = err.response?.data?.message || err.response?.data || '';
       error.value = typeof msg === 'string' && msg.length > 0
         ? msg
-        : 'Dev login failed.';
+        : translate('auth.devLoginFailed');
       return false;
     } finally {
       loading.value = false;
@@ -78,7 +79,7 @@ export const useAuthStore = defineStore('auth', () => {
       const msg = err.response?.data?.message || err.response?.data || '';
       error.value = typeof msg === 'string' && msg.length > 0
         ? msg
-        : 'Dev admin reset failed.';
+        : translate('auth.devResetFailed');
       return false;
     } finally {
       loading.value = false;
@@ -122,7 +123,7 @@ export const useAuthStore = defineStore('auth', () => {
       setAuthData(response);
       return true;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Admin registration failed.';
+      error.value = err.response?.data?.message || translate('auth.adminRegistrationFailed');
       return false;
     } finally {
       loading.value = false;
@@ -137,7 +138,7 @@ export const useAuthStore = defineStore('auth', () => {
       setAuthData(response);
       return true;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Teacher registration failed.';
+      error.value = err.response?.data?.message || translate('auth.teacherRegistrationFailed');
       return false;
     } finally {
       loading.value = false;
@@ -152,7 +153,7 @@ export const useAuthStore = defineStore('auth', () => {
       setAuthData(response);
       return true;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Student registration failed.';
+      error.value = err.response?.data?.message || translate('auth.studentRegistrationFailed');
       return false;
     } finally {
       loading.value = false;

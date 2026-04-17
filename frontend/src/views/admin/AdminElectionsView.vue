@@ -1,8 +1,8 @@
 <template>
   <div class="admin-elections">
     <div class="header">
-      <h1>Elections</h1>
-      <BaseButton @click="router.push('/admin/elections/create')">➕ Create Election</BaseButton>
+      <h1>{{ t('adminElections.title') }}</h1>
+      <BaseButton @click="router.push('/admin/elections/create')">➕ {{ t('adminElections.createElection') }}</BaseButton>
     </div>
 
     <!-- Status filters -->
@@ -26,16 +26,16 @@
     <!-- Error -->
     <div v-else-if="electionStore.error" class="error-state">
       <p>{{ electionStore.error }}</p>
-      <BaseButton @click="electionStore.fetchAll()">Retry</BaseButton>
+      <BaseButton @click="electionStore.fetchAll()">{{ t('common.retry') }}</BaseButton>
     </div>
 
     <!-- Empty -->
     <BaseEmptyState
       v-else-if="filteredElections.length === 0"
-      title="No elections found"
-      message="Create your first election to get started."
+      :title="t('adminElections.noElectionsTitle')"
+      :message="t('adminElections.noElectionsMessage')"
       icon="🗳️"
-      :action="{ label: 'Create Election', route: '/admin/elections/create' }"
+      :action="{ label: t('adminElections.createElection'), route: '/admin/elections/create' }"
     />
 
     <!-- Elections Table -->
@@ -43,21 +43,21 @@
       <table>
         <thead>
           <tr>
-            <th>Title</th>
-            <th>Type</th>
-            <th>Status</th>
-            <th>Start</th>
-            <th>End</th>
-            <th>Actions</th>
+            <th>{{ t('common.title') }}</th>
+            <th>{{ t('common.type') }}</th>
+            <th>{{ t('common.status') }}</th>
+            <th>{{ t('common.start') }}</th>
+            <th>{{ t('common.end') }}</th>
+            <th>{{ t('common.actions') }}</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="election in filteredElections" :key="election.id">
             <td class="title-cell">{{ election.title }}</td>
-              <td>{{ getElectionTypeDefinition(election.type).label }}</td>
+              <td>{{ getElectionTypeDefinition(election.type, t).label }}</td>
             <td>
               <span class="status-badge" :class="statusClass(election.status)">
-                {{ election.status }}
+                {{ getElectionStatusLabel(election.status, t) }}
               </span>
             </td>
             <td>{{ formatDate(election.startAt) }}</td>
@@ -78,26 +78,30 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useLocale } from '@/composables/useLocale';
+import { toIntlLocale } from '@/locales';
 import { useElectionStore } from '@/stores/electionStore';
 import { useUiStore } from '@/stores/uiStore';
 import type { Election, ElectionStatus } from '@/types';
-import { getElectionTypeDefinition } from '@/types';
+import { getElectionStatusLabel, getElectionTypeDefinition } from '@/types';
 import BaseButton from '@/components/common/BaseButton.vue';
 import BaseEmptyState from '@/components/common/BaseEmptyState.vue';
 
 const router = useRouter();
 const electionStore = useElectionStore();
 const uiStore = useUiStore();
+const { t, language } = useLocale();
 
 const activeFilter = ref<string>('ALL');
+const localeCode = computed(() => toIntlLocale(language.value));
 
-const filters = [
-  { label: 'All', value: 'ALL' },
-  { label: 'Draft', value: 'DRAFT' },
-  { label: 'Active', value: 'ACTIVE' },
-  { label: 'Ended', value: 'ENDED' },
-  { label: 'Archived', value: 'ARCHIVED' },
-];
+const filters = computed(() => [
+  { label: t('adminElections.filters.ALL'), value: 'ALL' },
+  { label: t('adminElections.filters.DRAFT'), value: 'DRAFT' },
+  { label: t('adminElections.filters.ACTIVE'), value: 'ACTIVE' },
+  { label: t('adminElections.filters.ENDED'), value: 'ENDED' },
+  { label: t('adminElections.filters.ARCHIVED'), value: 'ARCHIVED' },
+]);
 
 const filteredElections = computed(() => {
   if (activeFilter.value === 'ALL') return electionStore.elections;
@@ -109,20 +113,20 @@ function statusClass(status: ElectionStatus): string {
 }
 
 function formatDate(date: string | null): string {
-  if (!date) return '—';
-  return new Date(date).toLocaleDateString('de-DE');
+  if (!date) return t('common.notAvailable');
+  return new Date(date).toLocaleDateString(localeCode.value);
 }
 
 function confirmDelete(election: Election) {
   uiStore.openConfirm({
-    title: 'Delete Election',
-    message: `Are you sure you want to delete "${election.title}"? This action cannot be undone.`,
+    title: t('adminElections.deleteTitle'),
+    message: t('adminElections.deleteMessage', { title: election.title }),
     onConfirm: async () => {
       const success = await electionStore.deleteElection(election.id);
       if (success) {
-        uiStore.showToast({ type: 'success', message: 'Election deleted successfully.' });
+        uiStore.showToast({ type: 'success', message: t('adminElections.deletedSuccess') });
       } else {
-        uiStore.showToast({ type: 'error', message: electionStore.error || 'Failed to delete.' });
+        uiStore.showToast({ type: 'error', message: electionStore.error || t('adminElections.deleteFailed') });
       }
     },
   });
@@ -130,10 +134,10 @@ function confirmDelete(election: Election) {
 
 onMounted(() => {
   uiStore.setBreadcrumbs([
-    { label: 'Dashboard', route: '/admin/dashboard' },
-    { label: 'Elections' },
+    { label: t('nav.dashboard'), route: '/admin/dashboard' },
+    { label: t('nav.elections') },
   ]);
-  uiStore.setPageTitle('Elections');
+  uiStore.setPageTitle(t('adminElections.title'));
   electionStore.fetchAll();
 });
 </script>

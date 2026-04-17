@@ -1,3 +1,5 @@
+import { translate, type TranslateFunction } from '@/locales';
+
 export type ElectionStatus =
   | "DRAFT"
   | "PLANNED"
@@ -22,52 +24,46 @@ export interface ElectionTypeDefinition {
   requiresMaxSelections?: boolean;
 }
 
-export const electionTypeDefinitions: Record<ElectionType, ElectionTypeDefinition> = {
+const electionTypeDefinitions = {
   SINGLE_CHOICE: {
-    label: "Single Choice",
-    shortLabel: "Single",
-    description: "Each voter selects exactly one candidate.",
     ballotMode: "single",
-    resultMetricLabel: "votes",
-    helperText: "Choose one candidate.",
   },
   BINARY_CHOICE: {
-    label: "Binary Choice",
-    shortLabel: "Binary",
-    description: "A simple election between exactly two choices.",
     ballotMode: "single",
-    resultMetricLabel: "votes",
-    helperText: "Choose one of the two options.",
   },
   APPROVAL_VOTING: {
-    label: "Approval Voting",
-    shortLabel: "Approval",
-    description: "Voters can approve any number of acceptable candidates.",
     ballotMode: "multiple",
-    resultMetricLabel: "votes",
-    helperText: "Select every candidate you approve of.",
   },
   LIMITED_VOTE: {
-    label: "Limited Vote",
-    shortLabel: "Limited",
-    description: "Voters may select up to a configured number of candidates.",
     ballotMode: "multiple",
-    resultMetricLabel: "votes",
-    helperText: "Select up to the configured number of candidates.",
     requiresMaxSelections: true,
   },
   BORDA_COUNT: {
-    label: "Borda Count",
-    shortLabel: "Borda",
-    description: "Voters rank candidates, and higher ranks receive more points.",
     ballotMode: "ranking",
-    resultMetricLabel: "points",
-    helperText: "Rank all candidates from most preferred to least preferred.",
   },
-};
+} as const;
 
-export function getElectionTypeDefinition(type: ElectionType): ElectionTypeDefinition {
-  return electionTypeDefinitions[type];
+export function getElectionTypeDefinition(
+  type: ElectionType,
+  t: TranslateFunction = translate,
+): ElectionTypeDefinition {
+  const definition = electionTypeDefinitions[type];
+
+  return {
+    ...definition,
+    label: t(`electionTypes.${type}.label`),
+    shortLabel: t(`electionTypes.${type}.shortLabel`),
+    description: t(`electionTypes.${type}.description`),
+    resultMetricLabel: t(`electionTypes.${type}.resultMetricLabel`),
+    helperText: t(`electionTypes.${type}.helperText`),
+  };
+}
+
+export function getElectionStatusLabel(
+  status: ElectionStatus,
+  t: TranslateFunction = translate,
+) {
+  return t(`electionStatus.${status}`);
 }
 
 export interface Election {

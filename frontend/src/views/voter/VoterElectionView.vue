@@ -3,12 +3,12 @@
     <div class="election-container">
       <div v-if="loading" class="loading-state">
         <div class="spinner" />
-        <p>Loading election...</p>
+        <p>{{ t('voter.loadingElection') }}</p>
       </div>
 
       <div v-else-if="error" class="error-state">
         <p>{{ error }}</p>
-        <button class="btn" @click="loadData">Retry</button>
+        <button class="btn" @click="loadData">{{ t('common.retry') }}</button>
       </div>
 
       <template v-else-if="election">
@@ -40,7 +40,7 @@
 
         <template v-else-if="election.type === 'APPROVAL_VOTING' || election.type === 'LIMITED_VOTE'">
           <div class="selection-counter">
-            Selected {{ selectedCandidateIds.length }}
+            {{ t('voter.selectedCount', { count: selectedCandidateIds.length }) }}
             <template v-if="election.type === 'LIMITED_VOTE'">
               / {{ selectionLimit }}
             </template>
@@ -68,7 +68,7 @@
 
         <template v-else-if="election.type === 'BORDA_COUNT'">
           <div class="ranking-help">
-            Rank all candidates. Use the arrows to move a candidate up or down.
+            {{ t('voter.rankHelp') }}
           </div>
 
           <div class="ranking-list">
@@ -106,7 +106,7 @@
         </template>
 
         <button class="vote-button" :disabled="!canContinue" @click="goToConfirm">
-          Continue to Confirm
+          {{ t('voter.continueToConfirm') }}
         </button>
       </template>
     </div>
@@ -117,6 +117,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { candidateApi, electionApi } from "@/api";
+import { useLocale } from "@/composables/useLocale";
 import { getElectionTypeDefinition, type Candidate, type Election } from "@/types";
 
 interface StoredVoteBallot {
@@ -132,6 +133,7 @@ interface StoredVoteBallot {
 const route = useRoute();
 const router = useRouter();
 const electionId = Number(route.params.id);
+const { t } = useLocale();
 
 const election = ref<Election | null>(null);
 const candidates = ref<Candidate[]>([]);
@@ -142,7 +144,7 @@ const loading = ref(false);
 const error = ref<string | null>(null);
 
 const electionType = computed(() =>
-  election.value ? getElectionTypeDefinition(election.value.type) : getElectionTypeDefinition("SINGLE_CHOICE"),
+  election.value ? getElectionTypeDefinition(election.value.type, t) : getElectionTypeDefinition("SINGLE_CHOICE", t),
 );
 
 const selectionLimit = computed(() => election.value?.maxSelections ?? 1);
@@ -153,7 +155,7 @@ const instructionText = computed(() => {
   }
 
   if (election.value.type === "LIMITED_VOTE") {
-    return `Choose up to ${selectionLimit.value} candidates.`;
+    return t('voter.limitedVoteInstruction', { count: selectionLimit.value });
   }
 
   return electionType.value.helperText;
@@ -295,10 +297,10 @@ async function loadData() {
     rankedCandidateIds.value = loadedCandidates.map((candidate) => candidate.id);
 
     if (loadedElection.type === "BINARY_CHOICE" && loadedCandidates.length !== 2) {
-      error.value = "Binary choice elections require exactly two candidates.";
+      error.value = t('voter.binaryChoiceRequiresTwo');
     }
   } catch (err: any) {
-    error.value = err.response?.data?.message || "Failed to load election.";
+    error.value = err.response?.data?.message || t('voter.loadElectionFailed');
   } finally {
     loading.value = false;
   }

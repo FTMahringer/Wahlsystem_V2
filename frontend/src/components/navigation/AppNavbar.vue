@@ -8,6 +8,7 @@
     </div>
 
     <div class="navbar-right">
+      <AppPreferencesControls />
       <div class="user-menu" v-if="authStore.isAuthenticated">
         <button class="user-trigger" @click="menuOpen = !menuOpen">
           <span class="user-avatar">{{ initials }}</span>
@@ -21,8 +22,8 @@
               <small>{{ authStore.currentUser?.role }}</small>
             </div>
             <div class="dropdown-divider" />
-            <router-link to="/admin/profile" class="dropdown-item">👤 Profile</router-link>
-            <button class="dropdown-item" @click="handleLogout">🚪 Logout</button>
+            <router-link to="/admin/profile" class="dropdown-item">👤 {{ t('nav.profile') }}</router-link>
+            <button class="dropdown-item" @click="handleLogout">🚪 {{ t('nav.logout') }}</button>
           </div>
         </Transition>
       </div>
@@ -35,11 +36,14 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 import { useUiStore } from '@/stores/uiStore';
+import { useLocale } from '@/composables/useLocale';
+import AppPreferencesControls from '@/components/common/AppPreferencesControls.vue';
 import Breadcrumbs from './Breadcrumbs.vue';
 
 const authStore = useAuthStore();
 const uiStore = useUiStore();
 const router = useRouter();
+const { t } = useLocale();
 
 const menuOpen = ref(false);
 
@@ -101,6 +105,7 @@ async function handleLogout() {
 .navbar-right {
   display: flex;
   align-items: center;
+  gap: 1rem;
 }
 
 .user-menu {

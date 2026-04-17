@@ -1,34 +1,34 @@
 <template>
   <div class="admin-results">
-    <h1>Election Results</h1>
+    <h1>{{ t('adminResults.title') }}</h1>
     <p v-if="election" class="election-name">{{ election.title }}</p>
 
     <!-- Loading -->
-    <div v-if="loading" class="loading">Loading results...</div>
+    <div v-if="loading" class="loading">{{ t('adminResults.loading') }}</div>
 
     <!-- Error -->
     <div v-else-if="error" class="error-state">
       <p>{{ error }}</p>
-      <BaseButton @click="loadData">Retry</BaseButton>
+      <BaseButton @click="loadData">{{ t('common.retry') }}</BaseButton>
     </div>
 
     <!-- No results yet -->
     <BaseEmptyState
       v-else-if="!results"
-      title="No results yet"
-      message="Results will be available after the election has ended."
+      :title="t('adminResults.emptyTitle')"
+      :message="t('adminResults.emptyMessage')"
       icon="📊"
     />
 
     <!-- Results display -->
     <template v-else>
       <div class="total-votes">
-        <strong>Total {{ results.resultMetricLabel }}:</strong> {{ results.totalVotes }}
+        <strong>{{ t('adminResults.totalMetric', { metric: results.resultMetricLabel }) }}</strong> {{ results.totalVotes }}
       </div>
 
       <!-- Winners -->
       <div v-if="results.winners && results.winners.length > 0" class="winners-section">
-        <h2>🏆 Winner{{ results.winners.length > 1 ? 's' : '' }}</h2>
+        <h2>🏆 {{ results.winners.length > 1 ? t('adminResults.winners') : t('adminResults.winner') }}</h2>
         <div class="winner-cards">
             <div v-for="w in results.winners" :key="w.candidateId" class="winner-card">
               <div class="winner-name">{{ w.firstName }} {{ w.lastName }}</div>
@@ -41,7 +41,7 @@
 
       <!-- All results -->
       <div class="all-results">
-        <h2>All Results</h2>
+        <h2>{{ t('adminResults.allResults') }}</h2>
           <div v-for="r in results.results" :key="r.candidateId" class="result-row">
           <div class="result-info">
             <span class="result-name">{{ r.firstName }} {{ r.lastName }}</span>
@@ -66,6 +66,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { electionApi } from '@/api';
+import { useLocale } from '@/composables/useLocale';
 import { useUiStore } from '@/stores/uiStore';
 import type { Election, ElectionResult } from '@/types';
 import BaseButton from '@/components/common/BaseButton.vue';
@@ -74,6 +75,7 @@ import BaseEmptyState from '@/components/common/BaseEmptyState.vue';
 const route = useRoute();
 const uiStore = useUiStore();
 const electionId = Number(route.params.id);
+const { t } = useLocale();
 
 const election = ref<Election | null>(null);
 const results = ref<ElectionResult | null>(null);
@@ -92,7 +94,7 @@ async function loadData() {
       try { election.value = await electionApi.getById(electionId); } catch {}
       results.value = null;
     } else {
-      error.value = err.response?.data?.message || 'Failed to load results.';
+        error.value = err.response?.data?.message || t('adminResults.loadFailed');
     }
   } finally {
     loading.value = false;
@@ -101,11 +103,11 @@ async function loadData() {
 
 onMounted(() => {
   uiStore.setBreadcrumbs([
-    { label: 'Dashboard', route: '/admin/dashboard' },
-    { label: 'Elections', route: '/admin/elections' },
-    { label: 'Results' },
+    { label: t('nav.dashboard'), route: '/admin/dashboard' },
+    { label: t('nav.elections'), route: '/admin/elections' },
+    { label: t('nav.results') },
   ]);
-  uiStore.setPageTitle('Results');
+  uiStore.setPageTitle(t('adminResults.title'));
   loadData();
 });
 </script>

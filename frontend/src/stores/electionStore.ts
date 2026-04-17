@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { electionApi } from '@/api';
+import { translate } from '@/locales';
 import type { Election, CreateElectionRequest } from '@/types';
 
 export const useElectionStore = defineStore('election', () => {
@@ -27,7 +28,7 @@ export const useElectionStore = defineStore('election', () => {
     try {
       elections.value = await electionApi.getAll();
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to load elections.';
+      error.value = err.response?.data?.message || translate('adminElections.loadFailed');
     } finally {
       loading.value = false;
     }
@@ -41,7 +42,7 @@ export const useElectionStore = defineStore('election', () => {
       currentElection.value = election;
       return election;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to load election.';
+      error.value = err.response?.data?.message || translate('voter.loadElectionFailed');
       return null;
     } finally {
       loading.value = false;
@@ -56,7 +57,7 @@ export const useElectionStore = defineStore('election', () => {
       elections.value.push(election);
       return election;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to create election.';
+      error.value = err.response?.data?.message || translate('adminElectionForm.saveFailed');
       return null;
     } finally {
       loading.value = false;
@@ -77,7 +78,7 @@ export const useElectionStore = defineStore('election', () => {
       }
       return election;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to update election.';
+      error.value = err.response?.data?.message || translate('adminElectionForm.saveFailed');
       return null;
     } finally {
       loading.value = false;
@@ -95,7 +96,7 @@ export const useElectionStore = defineStore('election', () => {
       }
       return true;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to delete election.';
+      error.value = err.response?.data?.message || translate('adminElections.deleteFailed');
       return false;
     } finally {
       loading.value = false;

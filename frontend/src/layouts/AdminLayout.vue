@@ -15,9 +15,9 @@
       <div v-if="showWarning" class="inactivity-overlay" @click="resetTimer">
         <div class="inactivity-dialog">
           <span class="inactivity-icon">⏱️</span>
-          <h3>Still there?</h3>
-          <p>You will be logged out in <strong>{{ countdownSecs }}</strong> seconds due to inactivity.</p>
-          <button class="stay-btn" @click="resetTimer">Stay logged in</button>
+          <h3>{{ t('shell.inactivityTitle') }}</h3>
+          <p>{{ t('shell.inactivityMessage', { seconds: countdownSecs }) }}</p>
+          <button class="stay-btn" @click="resetTimer">{{ t('shell.stayLoggedIn') }}</button>
         </div>
       </div>
     </Transition>
@@ -29,6 +29,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUiStore } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useLocale } from '@/composables/useLocale';
 import AppSidebar from '@/components/navigation/AppSidebar.vue';
 import AppNavbar from '@/components/navigation/AppNavbar.vue';
 import GlobalToastLayer from '@/components/ui/GlobalToastLayer.vue';
@@ -37,6 +38,7 @@ import GlobalConfirmDialog from '@/components/ui/GlobalConfirmDialog.vue';
 const uiStore = useUiStore();
 const authStore = useAuthStore();
 const router = useRouter();
+const { t } = useLocale();
 
 const IDLE_MS = 30 * 60 * 1000;       // 30 minutes until logout
 const WARN_MS = IDLE_MS - 60 * 1000;  // warn 60 seconds before
@@ -113,7 +115,7 @@ onUnmounted(() => {
 .inactivity-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: var(--color-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -121,7 +123,7 @@ onUnmounted(() => {
 }
 
 .inactivity-dialog {
-  background: white;
+  background: var(--color-surface);
   border-radius: 12px;
   padding: 2rem 2.5rem;
   text-align: center;
@@ -139,11 +141,11 @@ onUnmounted(() => {
 .inactivity-dialog h3 {
   margin: 0 0 0.5rem;
   font-size: 1.25rem;
-  color: #1a202c;
+  color: var(--color-text);
 }
 
 .inactivity-dialog p {
-  color: #718096;
+  color: var(--color-text-muted);
   font-size: 0.95rem;
   margin: 0 0 1.5rem;
 }

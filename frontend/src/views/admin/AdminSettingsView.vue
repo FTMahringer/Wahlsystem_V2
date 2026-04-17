@@ -1,16 +1,16 @@
 <template>
   <div class="admin-settings">
-    <h1>Settings</h1>
+    <h1>{{ t('adminSettings.title') }}</h1>
 
     <AlertWidget
       type="info"
-      title="System Settings"
-      message="System settings will be available in a future update."
+      :title="t('adminSettings.alertTitle')"
+      :message="t('adminSettings.alertMessage')"
     />
 
     <BaseEmptyState
-      title="Coming Soon"
-      message="Configuration options for the election system are planned."
+      :title="t('adminSettings.comingSoonTitle')"
+      :message="t('adminSettings.comingSoonMessage')"
       icon="⚙️"
     />
   </div>
@@ -18,18 +18,20 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue';
+import { useLocale } from '@/composables/useLocale';
 import { useUiStore } from '@/stores/uiStore';
 import AlertWidget from '@/components/dashboard/widgets/AlertWidget.vue';
 import BaseEmptyState from '@/components/common/BaseEmptyState.vue';
 
 const uiStore = useUiStore();
+const { t } = useLocale();
 
 onMounted(() => {
   uiStore.setBreadcrumbs([
-    { label: 'Dashboard', route: '/admin/dashboard' },
-    { label: 'Settings' },
+    { label: t('nav.dashboard'), route: '/admin/dashboard' },
+    { label: t('nav.settings') },
   ]);
-  uiStore.setPageTitle('Settings');
+  uiStore.setPageTitle(t('adminSettings.title'));
 });
 </script>
 

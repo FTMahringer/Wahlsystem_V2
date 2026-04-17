@@ -1,6 +1,6 @@
 <template>
   <div class="admin-dashboard">
-    <h1>Dashboard</h1>
+    <h1>{{ t('adminDashboard.title') }}</h1>
 
     <!-- Loading skeleton -->
     <div v-if="electionStore.loading" class="skeleton-grid">
@@ -13,7 +13,7 @@
     <!-- Error state -->
     <div v-else-if="electionStore.error" class="error-state">
       <p>{{ electionStore.error }}</p>
-      <BaseButton @click="loadData">Retry</BaseButton>
+      <BaseButton @click="loadData">{{ t('common.retry') }}</BaseButton>
     </div>
 
     <template v-else>
@@ -21,35 +21,35 @@
       <DashboardGrid :widgets="statWidgets">
         <template #stat-active>
           <StatCardWidget
-            title="Active Elections"
+            :title="t('adminDashboard.statActiveTitle')"
             :value="electionStore.activeElections.length"
-            subtitle="Currently running"
+            :subtitle="t('adminDashboard.statActiveSubtitle')"
             trend="neutral"
             color="#38a169"
           />
         </template>
         <template #stat-draft>
           <StatCardWidget
-            title="Draft Elections"
+            :title="t('adminDashboard.statDraftTitle')"
             :value="electionStore.draftElections.length"
-            subtitle="In preparation"
+            :subtitle="t('adminDashboard.statDraftSubtitle')"
             trend="neutral"
             color="#d69e2e"
           />
         </template>
         <template #stat-total>
           <StatCardWidget
-            title="Total Elections"
+            :title="t('adminDashboard.statTotalTitle')"
             :value="electionStore.elections.length"
-            subtitle="All time"
+            :subtitle="t('adminDashboard.statTotalSubtitle')"
             trend="neutral"
           />
         </template>
         <template #stat-ended>
           <StatCardWidget
-            title="Ended Elections"
+            :title="t('adminDashboard.statEndedTitle')"
             :value="electionStore.endedElections.length"
-            subtitle="Completed"
+            :subtitle="t('adminDashboard.statEndedSubtitle')"
             trend="neutral"
             color="#e53e3e"
           />
@@ -59,7 +59,7 @@
       <!-- Quick Actions -->
       <div class="section">
         <QuickActionWidget
-          title="Quick Actions"
+          :title="t('adminDashboard.quickActions')"
           :actions="quickActions"
         />
       </div>
@@ -67,10 +67,10 @@
       <!-- Recent Elections -->
       <div class="section">
         <TableWidget
-          title="Recent Elections"
+          :title="t('adminDashboard.recentElections')"
           :columns="recentColumns"
           :rows="recentRows"
-          empty-text="No elections created yet"
+          :empty-text="t('adminDashboard.noElectionsYet')"
         />
       </div>
     </template>
@@ -79,9 +79,11 @@
 
 <script setup lang="ts">
 import { onMounted, computed } from 'vue';
+import { useLocale } from '@/composables/useLocale';
+import { toIntlLocale } from '@/locales';
 import { useUiStore } from '@/stores/uiStore';
 import { useElectionStore } from '@/stores/electionStore';
-import type { DashboardWidgetConfig } from '@/types';
+import { getElectionStatusLabel, getElectionTypeDefinition, type DashboardWidgetConfig } from '@/types';
 import DashboardGrid from '@/components/dashboard/DashboardGrid.vue';
 import StatCardWidget from '@/components/dashboard/widgets/StatCardWidget.vue';
 import TableWidget from '@/components/dashboard/widgets/TableWidget.vue';
@@ -90,26 +92,29 @@ import BaseButton from '@/components/common/BaseButton.vue';
 
 const uiStore = useUiStore();
 const electionStore = useElectionStore();
+const { t, language } = useLocale();
 
-const statWidgets: DashboardWidgetConfig[] = [
-  { id: 'stat-active', type: 'stat', title: 'Active', size: 'sm' },
-  { id: 'stat-draft', type: 'stat', title: 'Draft', size: 'sm' },
-  { id: 'stat-total', type: 'stat', title: 'Total', size: 'sm' },
-  { id: 'stat-ended', type: 'stat', title: 'Ended', size: 'sm' },
-];
+const localeCode = computed(() => toIntlLocale(language.value));
 
-const quickActions = [
-  { label: 'Create Election', icon: '➕', route: '/admin/elections/create' },
-  { label: 'All Elections', icon: '📋', route: '/admin/elections' },
-  { label: 'View Profile', icon: '👤', route: '/admin/profile' },
-];
+const statWidgets = computed<DashboardWidgetConfig[]>(() => [
+  { id: 'stat-active', type: 'stat', title: t('common.active'), size: 'sm' },
+  { id: 'stat-draft', type: 'stat', title: t('electionStatus.DRAFT'), size: 'sm' },
+  { id: 'stat-total', type: 'stat', title: t('common.total'), size: 'sm' },
+  { id: 'stat-ended', type: 'stat', title: t('electionStatus.ENDED'), size: 'sm' },
+]);
 
-const recentColumns = [
-  { key: 'title', label: 'Title' },
-  { key: 'status', label: 'Status' },
-  { key: 'type', label: 'Type' },
-  { key: 'createdAt', label: 'Created' },
-];
+const quickActions = computed(() => [
+  { label: t('adminDashboard.actionCreateElection'), icon: '➕', route: '/admin/elections/create' },
+  { label: t('adminDashboard.actionAllElections'), icon: '📋', route: '/admin/elections' },
+  { label: t('adminDashboard.actionViewProfile'), icon: '👤', route: '/admin/profile' },
+]);
+
+const recentColumns = computed(() => [
+  { key: 'title', label: t('common.title') },
+  { key: 'status', label: t('common.status') },
+  { key: 'type', label: t('common.type') },
+  { key: 'createdAt', label: t('common.created') },
+]);
 
 const recentRows = computed(() => {
   return [...electionStore.elections]
@@ -117,9 +122,9 @@ const recentRows = computed(() => {
     .slice(0, 5)
     .map(e => ({
       title: e.title,
-      status: e.status,
-      type: e.type.replace('_', ' '),
-      createdAt: new Date(e.createdAt).toLocaleDateString('de-DE'),
+      status: getElectionStatusLabel(e.status, t),
+      type: getElectionTypeDefinition(e.type, t).label,
+      createdAt: new Date(e.createdAt).toLocaleDateString(localeCode.value),
     }));
 });
 
@@ -128,8 +133,8 @@ async function loadData() {
 }
 
 onMounted(() => {
-  uiStore.setBreadcrumbs([{ label: 'Dashboard' }]);
-  uiStore.setPageTitle('Dashboard');
+  uiStore.setBreadcrumbs([{ label: t('nav.dashboard') }]);
+  uiStore.setPageTitle(t('adminDashboard.title'));
   loadData();
 });
 </script>

@@ -2,13 +2,13 @@
   <div class="index-page">
     <header class="header">
       <div class="header-content">
-        <h1>Wahlsystem</h1>
+        <h1>{{ t('app.name') }}</h1>
         <nav class="nav">
-          <router-link to="/">Home</router-link>
-          <router-link v-if="!isAuthenticated" to="/login">Login</router-link>
-          <router-link v-if="isAdminOrTeacher" to="/admin/dashboard">Dashboard</router-link>
-          <router-link v-if="isStudent" to="/vote/login">Vote</router-link>
-          <button v-if="isAuthenticated" class="logout-btn" @click="handleLogout">Logout</button>
+          <router-link to="/">{{ t('common.home') }}</router-link>
+          <router-link v-if="!isAuthenticated" to="/login">{{ t('common.login') }}</router-link>
+          <router-link v-if="isAdminOrTeacher" to="/admin/dashboard">{{ t('common.dashboard') }}</router-link>
+          <router-link v-if="isStudent" to="/vote/login">{{ t('common.vote') }}</router-link>
+          <button v-if="isAuthenticated" class="logout-btn" @click="handleLogout">{{ t('common.logout') }}</button>
         </nav>
       </div>
     </header>
@@ -16,22 +16,22 @@
     <main class="main-content">
       <!-- Active Elections -->
       <section class="section">
-        <h2>Active Elections</h2>
-        <div v-if="loadingActive" class="loading">Loading...</div>
-        <div v-else-if="activeElections.length === 0" class="empty">No active elections at the moment.</div>
+        <h2>{{ t('index.activeElections') }}</h2>
+        <div v-if="loadingActive" class="loading">{{ t('common.loading') }}</div>
+        <div v-else-if="activeElections.length === 0" class="empty">{{ t('index.noActive') }}</div>
         <div v-else class="election-grid">
           <div v-for="election in activeElections" :key="election.id" class="election-card active">
             <div class="card-header">
               <h3>{{ election.title }}</h3>
-              <span class="badge active">Active</span>
+              <span class="badge active">{{ t('common.active') }}</span>
             </div>
-            <p class="description">{{ election.description || 'No description available.' }}</p>
+            <p class="description">{{ election.description || t('index.noDescription') }}</p>
             <div class="meta">
-              <span v-if="election.endAt">Ends: {{ formatDate(election.endAt) }}</span>
-              <span v-else>No end date</span>
+              <span v-if="election.endAt">{{ t('index.ends', { date: formatDate(election.endAt) }) }}</span>
+              <span v-else>{{ t('index.noEndDate') }}</span>
             </div>
             <router-link v-if="isStudent" :to="`/vote/election/${election.id}`" class="action-link">
-              Vote Now
+              {{ t('index.voteNow') }}
             </router-link>
           </div>
         </div>
@@ -39,19 +39,19 @@
 
       <!-- Upcoming Elections -->
       <section class="section">
-        <h2>Upcoming Elections</h2>
-        <div v-if="loadingAll" class="loading">Loading...</div>
-        <div v-else-if="upcomingElections.length === 0" class="empty">No upcoming elections.</div>
+        <h2>{{ t('index.upcomingElections') }}</h2>
+        <div v-if="loadingAll" class="loading">{{ t('common.loading') }}</div>
+        <div v-else-if="upcomingElections.length === 0" class="empty">{{ t('index.noUpcoming') }}</div>
         <div v-else class="election-grid">
           <div v-for="election in upcomingElections" :key="election.id" class="election-card planned">
             <div class="card-header">
               <h3>{{ election.title }}</h3>
-              <span class="badge planned">{{ election.status }}</span>
+              <span class="badge planned">{{ getElectionStatusLabel(election.status, t) }}</span>
             </div>
-            <p class="description">{{ election.description || 'No description available.' }}</p>
+            <p class="description">{{ election.description || t('index.noDescription') }}</p>
             <div class="meta">
-              <span v-if="election.startAt">Starts: {{ formatDate(election.startAt) }}</span>
-              <span v-else>No start date</span>
+              <span v-if="election.startAt">{{ t('index.starts', { date: formatDate(election.startAt) }) }}</span>
+              <span v-else>{{ t('index.noStartDate') }}</span>
             </div>
           </div>
         </div>
@@ -59,9 +59,9 @@
 
       <!-- Previous Results -->
       <section class="section">
-        <h2>Previous Election Results</h2>
-        <div v-if="loadingEnded" class="loading">Loading...</div>
-        <div v-else-if="endedElections.length === 0" class="empty">No ended elections yet.</div>
+        <h2>{{ t('index.previousResults') }}</h2>
+        <div v-if="loadingEnded" class="loading">{{ t('common.loading') }}</div>
+        <div v-else-if="endedElections.length === 0" class="empty">{{ t('index.noEnded') }}</div>
         <div v-else class="results-list">
           <div v-for="election in endedElections" :key="election.id" class="result-card">
             <div class="result-header" @click="toggleResult(election.id)">
@@ -69,14 +69,14 @@
               <span class="toggle">{{ expandedResults[election.id] ? '▲' : '▼' }}</span>
             </div>
             <div v-if="expandedResults[election.id]" class="result-body">
-              <div v-if="resultLoading[election.id]" class="loading">Loading results...</div>
+              <div v-if="resultLoading[election.id]" class="loading">{{ t('index.loadingResults') }}</div>
               <div v-else-if="results[election.id]" class="result-details">
                 <p class="total-votes">
-                  Total {{ results[election.id].resultMetricLabel }}:
+                  {{ t('index.totalMetric', { metric: results[election.id].resultMetricLabel }) }}
                   {{ results[election.id].totalVotes }}
                 </p>
                 <div class="winners" v-if="results[election.id].winners.length > 0">
-                  <h4>🏆 Winner{{ results[election.id].winners.length > 1 ? 's' : '' }}</h4>
+                  <h4>🏆 {{ results[election.id].winners.length > 1 ? t('index.winnersPlural') : t('index.winners') }}</h4>
                   <div class="winner-tags">
                       <span v-for="winner in results[election.id].winners" :key="winner.candidateId" class="winner-tag">
                         {{ winner.firstName }} {{ winner.lastName }}
@@ -88,7 +88,7 @@
                   </div>
                 </div>
                 <div class="all-results">
-                  <h4>All Results</h4>
+                  <h4>{{ t('index.allResults') }}</h4>
                   <div v-for="r in results[election.id].results" :key="r.candidateId" class="result-bar">
                     <div class="bar-label">
                       <span>{{ r.firstName }} {{ r.lastName }}</span>
@@ -110,7 +110,7 @@
     </main>
 
     <footer class="footer">
-      <p>&copy; {{ new Date().getFullYear() }} Wahlsystem</p>
+      <p>&copy; {{ new Date().getFullYear() }} {{ t('app.name') }}</p>
     </footer>
   </div>
 </template>
@@ -119,13 +119,16 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { electionApi } from '@/api';
+import { useLocale } from '@/composables/useLocale';
 import { useAuthStore } from '@/stores/authStore';
 import { useRole } from '@/composables/useRole';
-import type { Election, ElectionResult } from '@/types';
+import { toIntlLocale } from '@/locales';
+import { getElectionStatusLabel, type Election, type ElectionResult } from '@/types';
 
 const router = useRouter();
 const authStore = useAuthStore();
 const { isAuthenticated, isAdminOrTeacher, isStudent } = useRole();
+const { t, language } = useLocale();
 
 const allElections = ref<Election[]>([]);
 const activeElections = ref<Election[]>([]);
@@ -142,9 +145,11 @@ const upcomingElections = computed(() => {
   return allElections.value.filter(e => e.status !== 'ACTIVE' && e.status !== 'ENDED');
 });
 
+const localeCode = computed(() => toIntlLocale(language.value));
+
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return '-';
-  return new Date(dateStr).toLocaleString('de-DE');
+  return new Date(dateStr).toLocaleString(localeCode.value);
 }
 
 async function loadData() {

@@ -1,33 +1,33 @@
 <template>
   <div class="login-container">
-    <div class="login-card">
-      <div class="login-header">
-        <h1>Wahlsystem</h1>
-        <p class="subtitle">Sign in to your account</p>
+      <div class="login-card">
+        <div class="login-header">
+        <h1>{{ t('app.name') }}</h1>
+        <p class="subtitle">{{ t('auth.signInToAccount') }}</p>
       </div>
 
       <form @submit.prevent="handleLogin" class="login-form">
         <div class="form-group">
-          <label for="username">Username</label>
+          <label for="username">{{ t('auth.username') }}</label>
           <input
             id="username"
             v-model="credentials.username"
             type="text"
             required
             :disabled="authStore.loading"
-            placeholder="Enter your username"
+            :placeholder="t('auth.usernamePlaceholder')"
           />
         </div>
 
         <div class="form-group">
-          <label for="password">Password</label>
+          <label for="password">{{ t('auth.password') }}</label>
           <input
             id="password"
             v-model="credentials.password"
             type="password"
             required
             :disabled="authStore.loading"
-            placeholder="Enter your password"
+            :placeholder="t('auth.passwordPlaceholder')"
           />
         </div>
 
@@ -40,20 +40,16 @@
           class="login-button"
           :disabled="authStore.loading || !isFormValid"
         >
-          <span v-if="authStore.loading">Signing in...</span>
-          <span v-else>Sign In</span>
+          <span v-if="authStore.loading">{{ t('auth.signingIn') }}</span>
+          <span v-else>{{ t('auth.signIn') }}</span>
         </button>
       </form>
 
       <div class="login-footer">
-        <p>
-          Don't have an account?
-          <router-link to="/register">Register</router-link>
-        </p>
         <p class="voter-link">
-          <router-link to="/">Back to Home</router-link>
+          <router-link to="/">{{ t('common.backToHome') }}</router-link>
           &nbsp;|&nbsp;
-          <router-link to="/vote/login">Voter Login with Token</router-link>
+          <router-link to="/vote/login">{{ t('auth.voterLoginWithToken') }}</router-link>
         </p>
       </div>
     </div>
@@ -63,10 +59,12 @@
 <script setup lang="ts">
 import { reactive, computed } from "vue";
 import { useRouter } from "vue-router";
+import { useLocale } from "@/composables/useLocale";
 import { useAuthStore } from "@/stores/authStore";
 
 const authStore = useAuthStore();
 const router = useRouter();
+const { t } = useLocale();
 
 const credentials = reactive({
   username: "",

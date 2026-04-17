@@ -88,10 +88,34 @@ const routes: RouteRecordRaw[] = [
         component: () => import('./views/admin/AdminResultsView.vue'),
       },
       {
+        path: 'candidates',
+        name: 'AdminCandidatesOverview',
+        component: () => import('./views/admin/AdminPlaceholderView.vue'),
+        meta: { placeholderKey: 'candidates' },
+      },
+      {
         path: 'users',
         name: 'AdminUsers',
         component: () => import('./views/admin/AdminUsersView.vue'),
         meta: { requiresRole: 'ADMIN' },
+      },
+      {
+        path: 'voters',
+        name: 'AdminVotersOverview',
+        component: () => import('./views/admin/AdminPlaceholderView.vue'),
+        meta: { placeholderKey: 'voters', requiresRole: 'ADMIN' },
+      },
+      {
+        path: 'results',
+        name: 'AdminResultsOverview',
+        component: () => import('./views/admin/AdminPlaceholderView.vue'),
+        meta: { placeholderKey: 'results' },
+      },
+      {
+        path: 'audit',
+        name: 'AdminAuditOverview',
+        component: () => import('./views/admin/AdminPlaceholderView.vue'),
+        meta: { placeholderKey: 'audit', requiresRole: 'ADMIN' },
       },
       {
         path: 'settings',
