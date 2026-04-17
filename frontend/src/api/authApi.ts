@@ -15,6 +15,16 @@ export const authApi = {
     return response.data;
   },
 
+  devLogin: async (username: string): Promise<AuthResponse> => {
+    const response = await apiClient.post('/auth/dev-login', { username });
+    return response.data;
+  },
+
+  devResetAdmin: async (): Promise<AuthResponse> => {
+    const response = await apiClient.post('/auth/dev-reset-admin');
+    return response.data;
+  },
+
   // Register Admin (admin only)
   registerAdmin: async (data: RegisterRequest): Promise<AuthResponse> => {
     const response = await apiClient.post('/auth/register/admin', data);

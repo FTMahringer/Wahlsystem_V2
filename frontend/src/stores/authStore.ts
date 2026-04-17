@@ -47,6 +47,44 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function devLogin(username = 'admin'): Promise<boolean> {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response: AuthResponse = await authApi.devLogin(username);
+      setAuthData(response);
+      lastVerifiedAt = Date.now();
+      return true;
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.response?.data || '';
+      error.value = typeof msg === 'string' && msg.length > 0
+        ? msg
+        : 'Dev login failed.';
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function devResetAdmin(): Promise<boolean> {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response: AuthResponse = await authApi.devResetAdmin();
+      setAuthData(response);
+      lastVerifiedAt = Date.now();
+      return true;
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.response?.data || '';
+      error.value = typeof msg === 'string' && msg.length > 0
+        ? msg
+        : 'Dev admin reset failed.';
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   /**
    * Verifies the session against the server.
    * Returns true if the session is valid and the stored user matches the server user.
@@ -205,6 +243,8 @@ export const useAuthStore = defineStore('auth', () => {
     isAdminOrTeacher,
     currentUser,
     login,
+    devLogin,
+    devResetAdmin,
     verifySession,
     registerAdmin,
     registerTeacher,

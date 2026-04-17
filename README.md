@@ -40,6 +40,23 @@ Content-Type: application/json
 
 This returns a normal auth response with access and refresh tokens for the existing user.
 
+You can also use it directly in the browser:
+
+```text
+http://localhost:8080/api/v1/auth/dev-login?username=admin
+```
+
+The admin login page also shows dev-only buttons to:
+
+- sign in directly as `admin`
+- reset the default admin back to `admin / admin123` and sign in immediately
+
+The reset endpoint is:
+
+```http
+POST http://localhost:8080/api/v1/auth/dev-reset-admin
+```
+
 Use it only for local development and testing.
 
 <details>

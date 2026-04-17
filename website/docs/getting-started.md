@@ -115,6 +115,23 @@ Example body:
 
 This issues a normal auth token for an existing user without requiring a password.
 
+Browser-friendly variant:
+
+```text
+/api/v1/auth/dev-login?username=admin
+```
+
+The admin login page also shows dev-only helper buttons for:
+
+- signing in directly as `admin`
+- resetting the default admin back to `admin / admin123`
+
+The reset endpoint is:
+
+```text
+POST /api/v1/auth/dev-reset-admin
+```
+
 Important notes:
 
 - this endpoint exists only in the `dev` profile

@@ -32,6 +32,20 @@ Example:
 }
 ```
 
+For quick browser testing, you can also open:
+
+```text
+/api/v1/auth/dev-login?username=admin
+```
+
+The admin login page also exposes dev-only helper buttons so you can sign in as the default admin or reset that admin account without using the browser console.
+
+The backend reset endpoint is:
+
+```text
+POST /api/v1/auth/dev-reset-admin
+```
+
 This is intentionally limited to the `dev` profile so password storage and the normal login flow stay unchanged.
 
 ## Frontend stack

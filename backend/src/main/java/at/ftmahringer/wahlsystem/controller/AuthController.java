@@ -1,6 +1,7 @@
 package at.ftmahringer.wahlsystem.controller;
 
 import at.ftmahringer.wahlsystem.dto.AuthResponse;
+import at.ftmahringer.wahlsystem.dto.DevLoginRequest;
 import at.ftmahringer.wahlsystem.dto.LoginRequest;
 import at.ftmahringer.wahlsystem.dto.RegisterRequest;
 import at.ftmahringer.wahlsystem.dto.TokenLoginRequest;
@@ -38,6 +39,20 @@ public class AuthController {
         @Valid @RequestBody LoginRequest request
     ) {
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    @PostMapping("/dev-login")
+    @Operation(summary = "Dev-only login by username")
+    public ResponseEntity<AuthResponse> devLogin(
+        @Valid @RequestBody DevLoginRequest request
+    ) {
+        return ResponseEntity.ok(authService.devLogin(request.getUsername()));
+    }
+
+    @PostMapping("/dev-reset-admin")
+    @Operation(summary = "Dev-only reset of the default admin user")
+    public ResponseEntity<AuthResponse> devResetAdmin() {
+        return ResponseEntity.ok(authService.devResetDefaultAdmin());
     }
 
     @PostMapping("/register/admin")
@@ -81,7 +96,9 @@ public class AuthController {
     }
 
     @PostMapping("/token-login")
-    @Operation(summary = "Validate a voter token and return the linked election")
+    @Operation(
+        summary = "Validate a voter token and return the linked election"
+    )
     public ResponseEntity<TokenLoginResponse> tokenLogin(
         @Valid @RequestBody TokenLoginRequest request
     ) {

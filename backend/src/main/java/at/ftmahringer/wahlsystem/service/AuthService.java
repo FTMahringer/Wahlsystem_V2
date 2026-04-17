@@ -17,6 +17,7 @@ import at.ftmahringer.wahlsystem.security.JwtTokenProvider;
 import at.ftmahringer.wahlsystem.security.UserPrincipal;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -33,6 +34,10 @@ import org.springframework.web.server.ResponseStatusException;
 @RequiredArgsConstructor
 public class AuthService {
 
+    private static final String DEV_ADMIN_USERNAME = "admin";
+    private static final String DEV_ADMIN_PASSWORD = "admin123";
+    private static final String DEV_ADMIN_EMAIL = "admin@wahlsystem.local";
+
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final AdminRepository adminRepository;
@@ -42,6 +47,7 @@ public class AuthService {
     private final JwtTokenProvider tokenProvider;
     private final TokenBlacklistService tokenBlacklistService;
     private final LoginAttemptService loginAttemptService;
+    private final Environment environment;
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
@@ -51,29 +57,41 @@ public class AuthService {
             long secs = loginAttemptService.remainingLockSeconds(username);
             throw new ResponseStatusException(
                 HttpStatus.TOO_MANY_REQUESTS,
-                "Too many failed attempts. Please try again in " + secs + " seconds."
+                "Too many failed attempts. Please try again in " +
+                    secs +
+                    " seconds."
             );
         }
 
         try {
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, request.getPassword())
+                new UsernamePasswordAuthenticationToken(
+                    username,
+                    request.getPassword()
+                )
             );
 
             loginAttemptService.loginSucceeded(username);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            SecurityContextHolder.getContext().setAuthentication(
+                authentication
+            );
+            UserPrincipal userPrincipal =
+                (UserPrincipal) authentication.getPrincipal();
 
             User user = userRepository
                 .findById(userPrincipal.getId())
-                .orElseThrow(() -> new BadCredentialsException("User not found"));
+                .orElseThrow(() ->
+                    new BadCredentialsException("User not found")
+                );
 
             user.setLastLoginAt(LocalDateTime.now());
             user.setActive(true);
             userRepository.save(user);
 
             String token = tokenProvider.generateToken(authentication);
-            String refreshToken = tokenProvider.generateRefreshToken(user.getId());
+            String refreshToken = tokenProvider.generateRefreshToken(
+                user.getId()
+            );
 
             return buildAuthResponse(token, refreshToken, user);
         } catch (BadCredentialsException e) {
@@ -100,6 +118,8 @@ public class AuthService {
 
     @Transactional
     public AuthResponse devLogin(String username) {
+        ensureDevProfile();
+
         User user = userRepository
             .findByUsername(username)
             .orElseThrow(() -> new BadCredentialsException("User not found"));
@@ -116,6 +136,66 @@ public class AuthService {
         String refreshToken = tokenProvider.generateRefreshToken(user.getId());
 
         return buildAuthResponse(token, refreshToken, user);
+    }
+
+    @Transactional
+    public AuthResponse devResetDefaultAdmin() {
+        ensureDevProfile();
+
+        User existingUser = userRepository
+            .findByUsername(DEV_ADMIN_USERNAME)
+            .orElse(null);
+        Admin admin;
+
+        if (existingUser == null) {
+            admin = Admin.builder()
+                .username(DEV_ADMIN_USERNAME)
+                .email(DEV_ADMIN_EMAIL)
+                .firstName("System")
+                .lastName("Administrator")
+                .role(UserRole.ADMIN)
+                .active(true)
+                .emailVerified(true)
+                .adminLevel(1)
+                .canManageUsers(true)
+                .canManageElections(true)
+                .canViewAllResults(true)
+                .build();
+        } else if (existingUser instanceof Admin existingAdmin) {
+            admin = existingAdmin;
+            admin.setFirstName("System");
+            admin.setLastName("Administrator");
+            admin.setRole(UserRole.ADMIN);
+            admin.setActive(true);
+            admin.setEmailVerified(true);
+            admin.setAdminLevel(1);
+            admin.setCanManageUsers(true);
+            admin.setCanManageElections(true);
+            admin.setCanViewAllResults(true);
+            if (!StringUtils.hasText(admin.getEmail())) {
+                admin.setEmail(DEV_ADMIN_EMAIL);
+            }
+        } else {
+            throw new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Username 'admin' already exists for a non-admin user"
+            );
+        }
+
+        admin.setPassword(passwordEncoder.encode(DEV_ADMIN_PASSWORD));
+        admin.setLastLoginAt(LocalDateTime.now());
+
+        Admin savedAdmin = adminRepository.save(admin);
+        String token = tokenProvider.generateTokenFromUserId(
+            savedAdmin.getId(),
+            savedAdmin.getUsername(),
+            "ROLE_" + savedAdmin.getRole().name()
+        );
+        String refreshToken = tokenProvider.generateRefreshToken(
+            savedAdmin.getId()
+        );
+
+        return buildAuthResponse(token, refreshToken, savedAdmin);
     }
 
     @Transactional
@@ -345,5 +425,14 @@ public class AuthService {
         }
 
         return builder.build();
+    }
+
+    private void ensureDevProfile() {
+        if (!environment.matchesProfiles("dev")) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Endpoint not available"
+            );
+        }
     }
 }
