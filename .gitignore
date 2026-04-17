@@ -1,9 +1,9 @@
 # Environment variables
-.env
+#.env
 .env.local
 .env.*.local
-docker/dev/.env
-docker/prod/.env
+#docker/dev/.env
+#docker/prod/.env
 
 # Node modules
 node_modules/

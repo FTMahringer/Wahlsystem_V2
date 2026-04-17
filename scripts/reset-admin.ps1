@@ -1,9 +1,11 @@
 #!/usr/bin/env pwsh
 # reset-admin.ps1 — Insert/reset the default admin user directly in the database.
-# Reads the pepper from docker/dev/.env so the hash is correct for the current config.
+# Reads password hashing settings from the running backend container first so the
+# generated hash matches the active backend configuration.
 # Usage: .\scripts\reset-admin.ps1
 
 param(
+    [string]$BackendContainer = "Wahlsystem-backend-dev",
     [string]$Container  = "Wahlsystem-mariadb-dev",
     [string]$DbName     = "myapp_db",
     [string]$DbUser     = "root",
@@ -19,24 +21,62 @@ Write-Host "  Wahlsystem — Reset Default Admin"
 Write-Host "========================================"
 Write-Host ""
 
-# ── Read pepper and bcrypt strength from dev .env ─────────────────────────────
+# ── Read password hashing config ───────────────────────────────────────────────
 $envFile = Join-Path $PSScriptRoot "..\docker\dev\.env"
+$algorithm = "bcrypt"
 $pepper  = ""
 $strength = "12"
+$configSource = "defaults"
 
-if (Test-Path $envFile) {
-    Get-Content $envFile | ForEach-Object {
-        if ($_ -match '^\s*PASSWORD_PEPPER\s*=\s*(.+)$')       { $pepper   = $matches[1].Trim() }
-        if ($_ -match '^\s*PASSWORD_BCRYPT_STRENGTH\s*=\s*(\d+)$') { $strength = $matches[1].Trim() }
+if ($BackendContainer) {
+    $containerEnv = docker exec $BackendContainer /bin/sh -c "env" 2>$null
+    if ($LASTEXITCODE -eq 0 -and $containerEnv) {
+        $configSource = "backend container"
+        $containerEnv | ForEach-Object {
+            if ($_ -match '^PASSWORD_ALGORITHM=(.+)$') {
+                $algorithm = $matches[1].Trim()
+            }
+            if ($_ -match '^PASSWORD_PEPPER=(.*)$') {
+                $pepper = $matches[1].Trim()
+            }
+            if ($_ -match '^PASSWORD_BCRYPT_STRENGTH=(\d+)$') {
+                $strength = $matches[1].Trim()
+            }
+        }
     }
 }
 
+if ($configSource -eq "defaults" -and (Test-Path $envFile)) {
+    $configSource = "docker/dev/.env"
+    Get-Content $envFile | ForEach-Object {
+        if ($_ -match '^\s*PASSWORD_ALGORITHM\s*=\s*(.+)$') {
+            $algorithm = $matches[1].Trim()
+        }
+        if ($_ -match '^\s*PASSWORD_PEPPER\s*=\s*(.*)$') {
+            $pepper = $matches[1].Trim()
+        }
+        if ($_ -match '^\s*PASSWORD_BCRYPT_STRENGTH\s*=\s*(\d+)$') {
+            $strength = $matches[1].Trim()
+        }
+    }
+}
+
+if ($algorithm -ne "bcrypt") {
+    Write-Host "ERROR: reset-admin.ps1 currently supports only PASSWORD_ALGORITHM=bcrypt." -ForegroundColor Red
+    Write-Host "Active algorithm: $algorithm (from $configSource)" -ForegroundColor Red
+    Write-Host "Either switch the dev profile to bcrypt for this script or extend hash-util to the selected algorithm." -ForegroundColor Yellow
+    exit 1
+}
+
+Write-Host "  Config   : $configSource" -ForegroundColor Cyan
+Write-Host "  Algorithm: $algorithm"
 if ($pepper) {
-    Write-Host "  Pepper   : configured (from docker/dev/.env)" -ForegroundColor Cyan
+    Write-Host "  Pepper   : configured" -ForegroundColor Cyan
 } else {
     Write-Host "  Pepper   : not set (hash will be plain bcrypt)" -ForegroundColor Yellow
 }
 Write-Host "  Strength : $strength"
+Write-Host "  Salt     : managed inside the bcrypt hash (no separate DB column)"
 Write-Host ""
 
 # ── Generate hash using hash-util ─────────────────────────────────────────────
@@ -47,7 +87,7 @@ if (-not (Test-Path $hashUtil)) {
 }
 
 Write-Host "Generating password hash..." -ForegroundColor Cyan
-$bcryptHash = node $hashUtil $Password $pepper "bcrypt" $strength
+$bcryptHash = node $hashUtil $Password $pepper $algorithm $strength
 
 if (-not $bcryptHash) {
     Write-Host "ERROR: Failed to generate hash." -ForegroundColor Red
