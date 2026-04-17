@@ -52,8 +52,3 @@ java -classpath .mvn\wrapper\maven-wrapper.jar "-Dmaven.multiModuleProjectDirect
 - single-choice, binary, approval, limited-vote, and Borda-count elections
 - admin user management
 - student/teacher onboarding wizard
-
-## Planning
-
-- rollout and remaining work: `udpate-plan.txt`
-- election-idea backlog: `types-and-ideas.txt`
