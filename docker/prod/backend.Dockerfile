@@ -4,16 +4,18 @@ FROM eclipse-temurin:25-jdk AS builder
 
 WORKDIR /app
 
-COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
 
-RUN chmod +x mvnw
-RUN ./mvnw dependency:go-offline -B
+RUN java -classpath .mvn/wrapper/maven-wrapper.jar \
+    -Dmaven.multiModuleProjectDirectory=/app \
+    org.apache.maven.wrapper.MavenWrapperMain dependency:go-offline -B
 
 COPY src ./src
 
-RUN ./mvnw clean package -DskipTests
+RUN java -classpath .mvn/wrapper/maven-wrapper.jar \
+    -Dmaven.multiModuleProjectDirectory=/app \
+    org.apache.maven.wrapper.MavenWrapperMain clean package -DskipTests
 
 FROM eclipse-temurin:25-jre
 
