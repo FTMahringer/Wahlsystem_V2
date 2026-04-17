@@ -39,3 +39,15 @@ sidebar_position: 6
 - instant runoff voting
 - score voting
 - richer templates and result visualizations
+
+## Documentation roadmap
+
+This documentation site will also expand alongside the product.
+
+Planned additions:
+
+- wizard walkthroughs with screenshots
+- voter-facing illustrated instructions
+- richer admin operating guides
+- class/group targeting documentation once implemented
+- token provisioning and election assignment guidance

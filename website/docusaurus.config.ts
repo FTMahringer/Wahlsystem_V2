@@ -34,6 +34,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
+          routeBasePath: '/',
           editUrl:
             'https://github.com/FTMahringer/Wahlsystem_V2/tree/main/website/',
         },
@@ -61,9 +62,9 @@ const config: Config = {
           type: 'docSidebar',
           sidebarId: 'docsSidebar',
           position: 'left',
-          label: 'Docs',
+          label: 'Documentation',
         },
-        {to: '/docs/roadmap', label: 'Roadmap', position: 'left'},
+        {to: '/roadmap', label: 'Roadmap', position: 'left'},
         {
           href: 'https://github.com/FTMahringer/Wahlsystem_V2',
           label: 'GitHub',
@@ -79,9 +80,9 @@ const config: Config = {
           items: [
             {
               label: 'Overview',
-              to: '/docs/overview',
+              to: '/',
             },
-            {label: 'Admin guide', to: '/docs/admin-guide'},
+            {label: 'Admin guide', to: '/admin-guide'},
           ],
         },
         {
@@ -106,11 +107,11 @@ const config: Config = {
           items: [
             {
               label: 'Development',
-              to: '/docs/development',
+              to: '/development',
             },
             {
               label: 'Election types',
-              to: '/docs/election-types',
+              to: '/election-types',
             },
           ],
         },

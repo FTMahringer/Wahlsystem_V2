@@ -4,9 +4,13 @@ const sidebars: SidebarsConfig = {
   docsSidebar: [
     'overview',
     'getting-started',
-    'election-types',
     'admin-guide',
+    'voting-guide',
+    'wizard-guides',
+    'election-types',
+    'architecture',
     'development',
+    'deployment',
     'roadmap',
   ],
 };
