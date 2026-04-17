@@ -25,6 +25,23 @@ Copy-Item .\docker\dev\.env.example .\docker\dev\.env
 
 This starts the Docker-based development stack, including frontend, backend, database, and Redis.
 
+### Dev-only login helper
+
+When the backend is running in the `dev` profile, you can log in without a password through the dev helper endpoint:
+
+```http
+POST http://localhost:8080/api/v1/auth/dev-login
+Content-Type: application/json
+
+{
+  "username": "admin"
+}
+```
+
+This returns a normal auth response with access and refresh tokens for the existing user.
+
+Use it only for local development and testing.
+
 <details>
 <summary>Alternative: run frontend and backend directly on the host</summary>
 
