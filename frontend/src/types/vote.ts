@@ -7,8 +7,10 @@ export interface Vote {
 
 export interface CastVoteRequest {
   electionId: number;
-  candidateId: number;
   token: string;
+  candidateId?: number;
+  candidateIds?: number[];
+  rankedCandidateIds?: number[];
 }
 
 export interface VoteResult {
@@ -24,29 +26,23 @@ export interface ElectionResults {
   results: VoteResult[];
 }
 
+export interface ElectionResultCandidate {
+  candidateId: number;
+  firstName: string;
+  lastName: string;
+  className: string;
+  description: string;
+  voteCount: number;
+  percentage: number;
+  winner: boolean;
+}
+
 export interface ElectionResult {
   electionId: number;
   electionTitle: string;
   endedAt: string;
   totalVotes: number;
-  results: {
-    candidateId: number;
-    firstName: string;
-    lastName: string;
-    className: string;
-    description: string;
-    voteCount: number;
-    percentage: number;
-    winner: boolean;
-  }[];
-  winners: {
-    candidateId: number;
-    firstName: string;
-    lastName: string;
-    className: string;
-    description: string;
-    voteCount: number;
-    percentage: number;
-    winner: boolean;
-  }[];
+  resultMetricLabel: string;
+  results: ElectionResultCandidate[];
+  winners: ElectionResultCandidate[];
 }

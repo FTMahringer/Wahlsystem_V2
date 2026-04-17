@@ -54,7 +54,7 @@
         <tbody>
           <tr v-for="election in filteredElections" :key="election.id">
             <td class="title-cell">{{ election.title }}</td>
-            <td>{{ election.type.replace('_', ' ') }}</td>
+              <td>{{ getElectionTypeDefinition(election.type).label }}</td>
             <td>
               <span class="status-badge" :class="statusClass(election.status)">
                 {{ election.status }}
@@ -81,6 +81,7 @@ import { useRouter } from 'vue-router';
 import { useElectionStore } from '@/stores/electionStore';
 import { useUiStore } from '@/stores/uiStore';
 import type { Election, ElectionStatus } from '@/types';
+import { getElectionTypeDefinition } from '@/types';
 import BaseButton from '@/components/common/BaseButton.vue';
 import BaseEmptyState from '@/components/common/BaseEmptyState.vue';
 

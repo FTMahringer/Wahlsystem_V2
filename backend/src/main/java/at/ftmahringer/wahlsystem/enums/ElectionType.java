@@ -2,6 +2,8 @@ package at.ftmahringer.wahlsystem.enums;
 
 public enum ElectionType {
     SINGLE_CHOICE,
-    MULTIPLE_CHOICE,
-    NUMBER_RATING,
+    BINARY_CHOICE,
+    APPROVAL_VOTING,
+    LIMITED_VOTE,
+    BORDA_COUNT,
 }

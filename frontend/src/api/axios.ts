@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+const authStorage = sessionStorage;
+
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1',
   headers: {
@@ -11,7 +13,7 @@ const apiClient = axios.create({
 // Request interceptor
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('auth_token');
+    const token = authStorage.getItem('auth_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -28,9 +30,9 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Handle unauthorized - clear token and redirect to login
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('refresh_token');
-      localStorage.removeItem('user');
+      authStorage.removeItem('auth_token');
+      authStorage.removeItem('refresh_token');
+      authStorage.removeItem('user');
       
       // Only redirect if not already on login page
       const currentPath = window.location.pathname;

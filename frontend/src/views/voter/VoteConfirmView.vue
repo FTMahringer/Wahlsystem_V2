@@ -4,15 +4,22 @@
       <div class="icon">✅</div>
       <h1>Confirm Your Vote</h1>
 
-      <div class="vote-details">
+      <div v-if="ballot" class="vote-details">
         <div class="detail-row">
           <span class="label">Election</span>
-          <span class="value">{{ electionTitle }}</span>
+          <span class="value">{{ ballot.electionTitle }}</span>
         </div>
         <div class="detail-row">
-          <span class="label">Candidate</span>
-          <span class="value">{{ candidateName }}</span>
+          <span class="label">Type</span>
+          <span class="value">{{ getElectionTypeDefinition(ballot.electionType).label }}</span>
         </div>
+      </div>
+
+      <div v-if="ballot" class="selection-summary">
+        <h2>Your Selection</h2>
+        <ul>
+          <li v-for="item in ballot.summary" :key="item">{{ item }}</li>
+        </ul>
       </div>
 
       <p class="warning">⚠️ This action cannot be undone. Your vote is final.</p>
@@ -23,8 +30,8 @@
         <button class="btn btn-secondary" :disabled="submitting" @click="goBack">
           ← Go Back
         </button>
-        <button class="btn btn-primary" :disabled="submitting" @click="submitVote">
-          {{ submitting ? 'Submitting...' : '🗳️ Submit Vote' }}
+        <button class="btn btn-primary" :disabled="submitting || !ballot" @click="submitVote">
+          {{ submitting ? "Submitting..." : "🗳️ Submit Vote" }}
         </button>
       </div>
     </div>
@@ -32,61 +39,70 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { voteApi } from '@/api';
+import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { voteApi } from "@/api";
+import { getElectionTypeDefinition, type Election } from "@/types";
+
+interface StoredVoteBallot {
+  electionId: number;
+  electionTitle: string;
+  electionType: Election["type"];
+  candidateId?: number;
+  candidateIds?: number[];
+  rankedCandidateIds?: number[];
+  summary: string[];
+}
 
 const router = useRouter();
 const submitting = ref(false);
-const errorMsg = ref('');
-
-const electionTitle = ref('');
-const candidateName = ref('');
-const candidateId = ref(0);
-const electionId = ref(0);
-const voterToken = ref('');
+const errorMsg = ref("");
+const ballot = ref<StoredVoteBallot | null>(null);
+const voterToken = ref("");
 
 function goBack() {
   router.back();
 }
 
 async function submitVote() {
-  if (!candidateId.value || !electionId.value || !voterToken.value) {
-    errorMsg.value = 'Missing vote data. Please go back and try again.';
+  if (!ballot.value || !voterToken.value) {
+    errorMsg.value = "Missing vote data. Please go back and try again.";
     return;
   }
 
   submitting.value = true;
-  errorMsg.value = '';
+  errorMsg.value = "";
 
   try {
     await voteApi.castVote({
-      electionId: electionId.value,
-      candidateId: candidateId.value,
+      electionId: ballot.value.electionId,
       token: voterToken.value,
+      candidateId: ballot.value.candidateId,
+      candidateIds: ballot.value.candidateIds,
+      rankedCandidateIds: ballot.value.rankedCandidateIds,
     });
-    // Clear vote session data
-    sessionStorage.removeItem('vote_candidate_id');
-    sessionStorage.removeItem('vote_candidate_name');
-    sessionStorage.removeItem('vote_election_id');
-    sessionStorage.removeItem('vote_election_title');
-    router.push('/vote/success');
+    sessionStorage.removeItem("vote_ballot");
+    router.push("/vote/success");
   } catch (err: any) {
-    errorMsg.value = err.response?.data?.message || 'Failed to submit vote. Please try again.';
+    errorMsg.value = err.response?.data?.message || "Failed to submit vote. Please try again.";
   } finally {
     submitting.value = false;
   }
 }
 
 onMounted(() => {
-  candidateId.value = Number(sessionStorage.getItem('vote_candidate_id') || 0);
-  candidateName.value = sessionStorage.getItem('vote_candidate_name') || '';
-  electionId.value = Number(sessionStorage.getItem('vote_election_id') || 0);
-  electionTitle.value = sessionStorage.getItem('vote_election_title') || '';
-  voterToken.value = sessionStorage.getItem('voter_token') || '';
+  const rawBallot = sessionStorage.getItem("vote_ballot");
+  voterToken.value = sessionStorage.getItem("voter_token") || "";
 
-  if (!candidateId.value || !electionId.value) {
-    router.replace('/vote/login');
+  if (!rawBallot || !voterToken.value) {
+    router.replace("/vote/login");
+    return;
+  }
+
+  try {
+    ballot.value = JSON.parse(rawBallot) as StoredVoteBallot;
+  } catch {
+    router.replace("/vote/login");
   }
 });
 </script>
@@ -106,7 +122,7 @@ onMounted(() => {
   border-radius: 16px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.15);
   text-align: center;
-  max-width: 480px;
+  max-width: 560px;
   width: 100%;
 }
 
@@ -118,12 +134,28 @@ onMounted(() => {
   font-size: 1.5rem;
 }
 
-.vote-details {
+.vote-details,
+.selection-summary {
   background: #f7fafc;
   border-radius: 10px;
   padding: 1.25rem;
   margin-bottom: 1.25rem;
   text-align: left;
+}
+
+.selection-summary h2 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  color: #1a202c;
+}
+
+.selection-summary ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.selection-summary li + li {
+  margin-top: 0.35rem;
 }
 
 .detail-row {

@@ -3,9 +3,12 @@ package at.ftmahringer.wahlsystem.controller;
 import at.ftmahringer.wahlsystem.dto.AuthResponse;
 import at.ftmahringer.wahlsystem.dto.LoginRequest;
 import at.ftmahringer.wahlsystem.dto.RegisterRequest;
+import at.ftmahringer.wahlsystem.dto.TokenLoginRequest;
+import at.ftmahringer.wahlsystem.dto.TokenLoginResponse;
 import at.ftmahringer.wahlsystem.dto.UserDto;
 import at.ftmahringer.wahlsystem.security.UserPrincipal;
 import at.ftmahringer.wahlsystem.service.AuthService;
+import at.ftmahringer.wahlsystem.service.VotingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final VotingService votingService;
 
     @PostMapping("/login")
     @Operation(summary = "Login with username and password")
@@ -74,6 +78,14 @@ public class AuthController {
         return ResponseEntity.ok(
             authService.getCurrentUser(userPrincipal.getId())
         );
+    }
+
+    @PostMapping("/token-login")
+    @Operation(summary = "Validate a voter token and return the linked election")
+    public ResponseEntity<TokenLoginResponse> tokenLogin(
+        @Valid @RequestBody TokenLoginRequest request
+    ) {
+        return ResponseEntity.ok(votingService.validateVotingToken(request));
     }
 
     @PostMapping("/refresh")

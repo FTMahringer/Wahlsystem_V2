@@ -14,5 +14,6 @@ export interface CreateCandidateRequest {
   lastName: string;
   className?: string;
   description?: string;
+  sortOrder?: number;
   electionId: number;
 }

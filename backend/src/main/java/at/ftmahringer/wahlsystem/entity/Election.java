@@ -43,6 +43,9 @@ public class Election {
     @Column(name = "end_at")
     private LocalDateTime endAt;
 
+    @Column(name = "max_selections")
+    private Integer maxSelections;
+
     @Column(name = "created_by")
     private String createdBy;
 

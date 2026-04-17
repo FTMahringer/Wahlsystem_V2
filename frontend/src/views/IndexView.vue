@@ -71,14 +71,20 @@
             <div v-if="expandedResults[election.id]" class="result-body">
               <div v-if="resultLoading[election.id]" class="loading">Loading results...</div>
               <div v-else-if="results[election.id]" class="result-details">
-                <p class="total-votes">Total Votes: {{ results[election.id].totalVotes }}</p>
+                <p class="total-votes">
+                  Total {{ results[election.id].resultMetricLabel }}:
+                  {{ results[election.id].totalVotes }}
+                </p>
                 <div class="winners" v-if="results[election.id].winners.length > 0">
                   <h4>🏆 Winner{{ results[election.id].winners.length > 1 ? 's' : '' }}</h4>
                   <div class="winner-tags">
-                    <span v-for="winner in results[election.id].winners" :key="winner.candidateId" class="winner-tag">
-                      {{ winner.firstName }} {{ winner.lastName }}
-                      <small>({{ winner.voteCount }} votes, {{ winner.percentage.toFixed(1) }}%)</small>
-                    </span>
+                      <span v-for="winner in results[election.id].winners" :key="winner.candidateId" class="winner-tag">
+                        {{ winner.firstName }} {{ winner.lastName }}
+                      <small>
+                        ({{ winner.voteCount }} {{ results[election.id].resultMetricLabel }},
+                        {{ winner.percentage.toFixed(1) }}%)
+                      </small>
+                      </span>
                   </div>
                 </div>
                 <div class="all-results">
@@ -86,7 +92,10 @@
                   <div v-for="r in results[election.id].results" :key="r.candidateId" class="result-bar">
                     <div class="bar-label">
                       <span>{{ r.firstName }} {{ r.lastName }}</span>
-                      <span>{{ r.voteCount }} votes ({{ r.percentage.toFixed(1) }}%)</span>
+                      <span>
+                        {{ r.voteCount }} {{ results[election.id].resultMetricLabel }}
+                        ({{ r.percentage.toFixed(1) }}%)
+                      </span>
                     </div>
                     <div class="bar-track">
                       <div class="bar-fill" :style="{ width: r.percentage + '%' }" :class="{ winner: r.winner }"></div>

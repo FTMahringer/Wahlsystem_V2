@@ -7,6 +7,8 @@ import type {
   TokenLoginCredentials 
 } from '@/types';
 
+const authStorage = sessionStorage;
+
 export const authApi = {
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     const response = await apiClient.post('/auth/login', credentials);
@@ -33,9 +35,9 @@ export const authApi = {
 
   logout: async (): Promise<void> => {
     await apiClient.post('/auth/logout');
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
+    authStorage.removeItem('auth_token');
+    authStorage.removeItem('refresh_token');
+    authStorage.removeItem('user');
   },
 
   getCurrentUser: async (): Promise<User> => {

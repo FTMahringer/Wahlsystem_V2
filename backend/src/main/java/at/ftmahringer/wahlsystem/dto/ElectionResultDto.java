@@ -14,6 +14,7 @@ public class ElectionResultDto {
     private String electionTitle;
     private LocalDateTime endedAt;
     private int totalVotes;
+    private String resultMetricLabel;
     private List<CandidateResultDto> results;
     private List<CandidateResultDto> winners;
 

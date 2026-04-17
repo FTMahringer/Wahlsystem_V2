@@ -23,6 +23,7 @@
 
     <properties>
         <java.version>25</java.version>
+        <lombok.version>1.18.44</lombok.version>
         <mapstruct.version>1.6.0</mapstruct.version>
         <springdoc.version>3.0.2</springdoc.version>
         <jjwt.version>0.12.6</jjwt.version>
@@ -197,6 +198,12 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
 

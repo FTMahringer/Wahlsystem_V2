@@ -24,6 +24,8 @@ function finish() {
   sessionStorage.removeItem('vote_candidate_name');
   sessionStorage.removeItem('vote_election_id');
   sessionStorage.removeItem('vote_election_title');
+  sessionStorage.removeItem('vote_ballot');
+  sessionStorage.removeItem('vote_summary');
   router.push('/vote/login');
 }
 </script>

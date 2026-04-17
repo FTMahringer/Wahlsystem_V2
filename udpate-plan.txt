@@ -1,0 +1,198 @@
+Election system extension plan
+
+Status update
+
+Completed in the first implementation milestone:
+
+- Shared election contract aligned across backend and frontend
+- New supported election types added:
+  - SINGLE_CHOICE
+  - BINARY_CHOICE
+  - APPROVAL_VOTING
+  - LIMITED_VOTE
+  - BORDA_COUNT
+- Shared wizard system added in the frontend
+- Election creation/editing replaced with a multi-step wizard
+- Missing admin election and candidate APIs added in the backend
+- Token login and vote submission endpoints added
+- Voter UI updated to support single-choice, binary, approval, limited-vote, and Borda-count ballots
+- Results UI updated to support vote-based and point-based displays
+- Backend compile/test setup fixed for Java 25 and H2-based tests
+
+What is still missing
+
+1. Student and teacher management area
+   - Replace the placeholder admin users page with a real management screen
+   - Add list/detail/create/edit flows for teachers and students
+   - Add filtering by role, class, and status
+
+2. User onboarding wizard
+   - Build onboarding on top of the shared wizard system
+   - Support:
+     - single create
+     - bulk paste
+     - CSV import
+   - Add duplicate/conflict review before import
+   - Add role-specific defaults for students and teachers
+
+3. User targeting and provisioning
+   - Add class/group assignment support needed for election targeting
+   - Add token generation or access provisioning flows tied to the final voter model
+
+4. Later election roadmap not yet implemented
+   - Candidate pair voting
+   - Dual-role elections
+   - Two-round runoff
+   - Instant runoff voting
+   - Score voting
+   - Advanced templates and richer rule configuration
+   - Richer result visualizations for advanced election types
+
+Recommended next implementation target
+
+- Build the admin user-management foundation and the shared student/teacher onboarding wizard next.
+
+Problem
+
+The project already contains a working Spring Boot backend and Vue frontend, but the election feature set is still narrow and the shared model is not fully aligned across layers. Before adding more election ideas, the safest approach is to first stabilize the election contract and then add new voting modes on top of reusable backend and frontend extension points.
+
+Current state snapshot
+
+- Backend ElectionType currently contains SINGLE_CHOICE, MULTIPLE_CHOICE, and NUMBER_RATING.
+- Frontend election typing currently contains SINGLE_CHOICE, MULTIPLE_CHOICE, and RANKED_CHOICE.
+- Admin election creation currently exposes only single-choice and multiple-choice.
+- Admin election creation is a single form today, not a guided multi-step wizard.
+- Voter ballot UI is currently single-choice oriented.
+- Result calculation currently assumes simple per-candidate totals and winner selection, which is fine for basic elections but not enough for ranked, runoff, pair, or dual-role modes.
+- The repository already includes a good idea catalog in types-and-ideas.txt, with a natural roadmap from simple school-safe election modes to more advanced ones.
+- Admin user management is not implemented yet in practice; the frontend users page is still a placeholder, even though backend user roles and entities already exist.
+
+Proposed approach
+
+1. Align the shared election model first.
+2. Add a shared frontend wizard system so election and user onboarding flows reuse the same structure.
+3. Add reusable backend vote-validation and result-calculation strategies per election type.
+4. Add frontend ballot components that render by election type instead of one fixed ballot.
+5. Replace the flat admin election form with a creation wizard so each election type can define the rules it needs clearly.
+6. Extend result views to support richer per-type outputs.
+7. Add guided admin onboarding flows for users once the election foundation is stable.
+
+Wizard system decision
+
+Use a small internal wizard system instead of adding a dedicated wizard library.
+
+Reasoning:
+
+- The current frontend has no existing wizard or stepper component to extend.
+- The dependency set is intentionally lightweight and does not include a UI framework that already brings a stepper/wizard primitive.
+- We need at least three guided flows soon:
+  - election creation wizard
+  - student onboarding wizard
+  - teacher onboarding wizard
+- These flows share the same mechanics:
+  - ordered steps
+  - per-step validation
+  - next/back/jump guards
+  - draft state persistence
+  - summary/review step
+  - optional branching based on role or election type
+
+Recommended shape:
+
+- components/common/wizard/
+  - WizardShell.vue
+  - WizardStepNav.vue
+  - WizardStepPanel.vue
+  - WizardActions.vue
+- composables/useWizard.ts
+  - current step state
+  - step registration
+  - validation hooks
+  - branching/skip rules
+  - dirty state / draft resume helpers
+- Feature wizards then provide only step definitions and form models, not their own wizard mechanics.
+
+Library note:
+
+- A third-party wizard library is possible, but it is not the best fit here unless the project first adopts a broader UI component framework.
+- For this codebase, a lightweight in-house wizard foundation is safer, easier to style consistently, and avoids introducing a dependency only to solve navigation between forms.
+
+Suggested rollout
+
+Phase 1 - foundation and low-risk additions
+
+- Unify backend/frontend ElectionType values and labels
+- Build a shared wizard system in the frontend for all guided admin flows
+- Introduce election-type metadata/config support
+- Build an election creation wizard with these steps:
+  - basics
+  - election type
+  - type-specific rules
+  - candidates
+  - schedule
+  - visibility and voter scope
+  - preview and publish
+- Add the easiest high-value modes first:
+  - Binary choice
+  - Approval voting
+  - Limited vote
+  - Borda count
+
+Phase 2 - compound school-election flows
+
+- Candidate pair voting
+- Dual-role elections (representative + vice in one flow)
+- Two-round runoff support
+- Upgrade the election wizard with richer previews, recommended templates, and contextual help per election type
+
+Phase 3 - advanced modes
+
+- Instant runoff voting
+- Score voting
+- Richer rule configuration and result visualizations
+- Add optional wizard-driven templates for advanced election setups
+
+Phase 4 - admin onboarding and user management
+
+- Build a student and teacher management area on top of the existing role model
+- Add user onboarding wizards for admins on top of the shared wizard system, with these flows:
+  - choose import mode: single create, bulk paste, CSV import
+  - choose role: student or teacher
+  - enter shared defaults and validation rules
+  - review detected duplicates/conflicts
+  - confirm import/create
+- Add class/group assignment support where needed for election targeting
+- Add token generation or access provisioning flows tied to the final voter model
+
+Main implementation order
+
+1. Align election contract
+2. Create shared wizard system
+3. Build election wizard
+4. Add election modes
+5. Extend results UI
+6. Add user-management onboarding wizards
+
+Likely impact areas
+
+- Backend:
+  - backend\src\main\java\at\ftmahringer\wahlsystem\enums\ElectionType.java
+  - election DTO/entity/service/controller flow
+  - vote persistence and result DTOs
+- Frontend:
+  - frontend\src\components\common\wizard\
+  - frontend\src\composables\useWizard.ts
+  - frontend\src\types\election.ts
+  - frontend\src\views\admin\AdminElectionFormView.vue
+  - frontend\src\views\admin\AdminUsersView.vue
+  - frontend\src\views\voter\VoterElectionView.vue
+  - confirm/results screens and related stores/api files
+
+Notes
+
+- The first implementation task should be fixing the backend/frontend election-type mismatch before adding any new mode.
+- Ranked, runoff, score, pair, and dual-role elections will likely require richer vote data than the current simple candidate total model.
+- For school use cases, the best first additions are approval voting, limited vote, binary choice, and Borda count because they add flexibility without making the system too hard to explain.
+- The election creation wizard should be part of Phase 1, because it becomes the main UX for exposing per-type configuration safely.
+- The wizard system itself should be implemented once and reused, rather than building separate ad-hoc wizard flows.
+- A student/teacher wizard makes sense, but it should follow the election foundation because the current users page is still a placeholder and needs core CRUD/import flows first.

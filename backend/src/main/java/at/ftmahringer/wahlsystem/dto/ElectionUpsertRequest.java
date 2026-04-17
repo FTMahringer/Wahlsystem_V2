@@ -2,24 +2,29 @@ package at.ftmahringer.wahlsystem.dto;
 
 import at.ftmahringer.wahlsystem.enums.ElectionStatus;
 import at.ftmahringer.wahlsystem.enums.ElectionType;
-import lombok.Builder;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 import lombok.Data;
 
-import java.time.LocalDateTime;
-
 @Data
-@Builder
-public class ElectionDto {
+public class ElectionUpsertRequest {
 
-    private Long id;
+    @NotBlank
     private String title;
+
     private String description;
+
+    @NotNull
     private ElectionType type;
+
     private ElectionStatus status;
+
     private LocalDateTime startAt;
+
     private LocalDateTime endAt;
+
+    @Min(1)
     private Integer maxSelections;
-    private String createdBy;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }

@@ -1,34 +1,34 @@
 <template>
   <div class="voter-election">
     <div class="election-container">
-      <!-- Loading -->
       <div v-if="loading" class="loading-state">
         <div class="spinner" />
         <p>Loading election...</p>
       </div>
 
-      <!-- Error -->
       <div v-else-if="error" class="error-state">
         <p>{{ error }}</p>
         <button class="btn" @click="loadData">Retry</button>
       </div>
 
-      <!-- Election -->
       <template v-else-if="election">
-        <h1>{{ election.title }}</h1>
+        <div class="election-header">
+          <h1>{{ election.title }}</h1>
+          <p class="type-badge">{{ electionType.label }}</p>
+        </div>
         <p v-if="election.description" class="election-desc">{{ election.description }}</p>
-        <p class="instruction">Select a candidate to vote for:</p>
+        <p class="instruction">{{ instructionText }}</p>
 
-        <div class="candidates-list">
+        <div v-if="election.type === 'SINGLE_CHOICE' || election.type === 'BINARY_CHOICE'" class="candidates-list">
           <div
             v-for="candidate in candidates"
             :key="candidate.id"
             class="candidate-card"
-            :class="{ selected: selectedCandidate === candidate.id }"
-            @click="selectedCandidate = candidate.id"
+            :class="{ selected: selectedCandidateId === candidate.id }"
+            @click="selectedCandidateId = candidate.id"
           >
             <div class="candidate-check">
-              <div class="radio" :class="{ checked: selectedCandidate === candidate.id }" />
+              <div class="radio" :class="{ checked: selectedCandidateId === candidate.id }" />
             </div>
             <div class="candidate-info">
               <h3>{{ candidate.firstName }} {{ candidate.lastName }}</h3>
@@ -38,11 +38,74 @@
           </div>
         </div>
 
-        <button
-          class="vote-button"
-          :disabled="selectedCandidate === null"
-          @click="goToConfirm"
-        >
+        <template v-else-if="election.type === 'APPROVAL_VOTING' || election.type === 'LIMITED_VOTE'">
+          <div class="selection-counter">
+            Selected {{ selectedCandidateIds.length }}
+            <template v-if="election.type === 'LIMITED_VOTE'">
+              / {{ selectionLimit }}
+            </template>
+          </div>
+
+          <div class="candidates-list">
+            <div
+              v-for="candidate in candidates"
+              :key="candidate.id"
+              class="candidate-card"
+              :class="{ selected: selectedCandidateIds.includes(candidate.id) }"
+              @click="toggleCandidate(candidate.id)"
+            >
+              <div class="candidate-check">
+                <div class="checkbox" :class="{ checked: selectedCandidateIds.includes(candidate.id) }" />
+              </div>
+              <div class="candidate-info">
+                <h3>{{ candidate.firstName }} {{ candidate.lastName }}</h3>
+                <p v-if="candidate.className" class="class-name">{{ candidate.className }}</p>
+                <p v-if="candidate.description" class="description">{{ candidate.description }}</p>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <template v-else-if="election.type === 'BORDA_COUNT'">
+          <div class="ranking-help">
+            Rank all candidates. Use the arrows to move a candidate up or down.
+          </div>
+
+          <div class="ranking-list">
+            <div
+              v-for="(candidate, index) in rankedCandidates"
+              :key="candidate.id"
+              class="ranking-item"
+            >
+              <div class="rank-badge">{{ index + 1 }}</div>
+              <div class="candidate-info">
+                <h3>{{ candidate.firstName }} {{ candidate.lastName }}</h3>
+                <p v-if="candidate.className" class="class-name">{{ candidate.className }}</p>
+                <p v-if="candidate.description" class="description">{{ candidate.description }}</p>
+              </div>
+              <div class="rank-actions">
+                <button
+                  type="button"
+                  class="move-btn"
+                  :disabled="index === 0"
+                  @click="moveCandidate(index, -1)"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  class="move-btn"
+                  :disabled="index === rankedCandidates.length - 1"
+                  @click="moveCandidate(index, 1)"
+                >
+                  ↓
+                </button>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <button class="vote-button" :disabled="!canContinue" @click="goToConfirm">
           Continue to Confirm
         </button>
       </template>
@@ -51,10 +114,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { electionApi, candidateApi } from '@/api';
-import type { Election, Candidate } from '@/types';
+import { computed, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { candidateApi, electionApi } from "@/api";
+import { getElectionTypeDefinition, type Candidate, type Election } from "@/types";
+
+interface StoredVoteBallot {
+  electionId: number;
+  electionTitle: string;
+  electionType: Election["type"];
+  candidateId?: number;
+  candidateIds?: number[];
+  rankedCandidateIds?: number[];
+  summary: string[];
+}
 
 const route = useRoute();
 const router = useRouter();
@@ -62,33 +135,170 @@ const electionId = Number(route.params.id);
 
 const election = ref<Election | null>(null);
 const candidates = ref<Candidate[]>([]);
-const selectedCandidate = ref<number | null>(null);
+const selectedCandidateId = ref<number | null>(null);
+const selectedCandidateIds = ref<number[]>([]);
+const rankedCandidateIds = ref<number[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
 
+const electionType = computed(() =>
+  election.value ? getElectionTypeDefinition(election.value.type) : getElectionTypeDefinition("SINGLE_CHOICE"),
+);
+
+const selectionLimit = computed(() => election.value?.maxSelections ?? 1);
+
+const instructionText = computed(() => {
+  if (!election.value) {
+    return "";
+  }
+
+  if (election.value.type === "LIMITED_VOTE") {
+    return `Choose up to ${selectionLimit.value} candidates.`;
+  }
+
+  return electionType.value.helperText;
+});
+
+const rankedCandidates = computed(() =>
+  rankedCandidateIds.value
+    .map((candidateId) => candidates.value.find((candidate) => candidate.id === candidateId))
+    .filter((candidate): candidate is Candidate => Boolean(candidate)),
+);
+
+const canContinue = computed(() => {
+  if (!election.value) {
+    return false;
+  }
+
+  switch (election.value.type) {
+    case "SINGLE_CHOICE":
+    case "BINARY_CHOICE":
+      return selectedCandidateId.value !== null;
+    case "APPROVAL_VOTING":
+      return selectedCandidateIds.value.length > 0;
+    case "LIMITED_VOTE":
+      return (
+        selectedCandidateIds.value.length > 0 &&
+        selectedCandidateIds.value.length <= selectionLimit.value
+      );
+    case "BORDA_COUNT":
+      return rankedCandidateIds.value.length === candidates.value.length;
+    default:
+      return false;
+  }
+});
+
+function toggleCandidate(candidateId: number) {
+  if (!election.value) {
+    return;
+  }
+
+  const alreadySelected = selectedCandidateIds.value.includes(candidateId);
+  if (alreadySelected) {
+    selectedCandidateIds.value = selectedCandidateIds.value.filter((id) => id !== candidateId);
+    return;
+  }
+
+  if (
+    election.value.type === "LIMITED_VOTE" &&
+    selectedCandidateIds.value.length >= selectionLimit.value
+  ) {
+    return;
+  }
+
+  selectedCandidateIds.value = [...selectedCandidateIds.value, candidateId];
+}
+
+function moveCandidate(index: number, offset: number) {
+  const nextIndex = index + offset;
+  if (nextIndex < 0 || nextIndex >= rankedCandidateIds.value.length) {
+    return;
+  }
+
+  const updated = [...rankedCandidateIds.value];
+  const [movedCandidateId] = updated.splice(index, 1);
+  updated.splice(nextIndex, 0, movedCandidateId);
+  rankedCandidateIds.value = updated;
+}
+
+function buildBallot(): StoredVoteBallot | null {
+  if (!election.value) {
+    return null;
+  }
+
+  const summary: string[] = [];
+  const ballot: StoredVoteBallot = {
+    electionId,
+    electionTitle: election.value.title,
+    electionType: election.value.type,
+    summary,
+  };
+
+  switch (election.value.type) {
+    case "SINGLE_CHOICE":
+    case "BINARY_CHOICE": {
+      const selectedCandidate = candidates.value.find(
+        (candidate) => candidate.id === selectedCandidateId.value,
+      );
+      if (!selectedCandidate) {
+        return null;
+      }
+      ballot.candidateId = selectedCandidate.id;
+      summary.push(`${selectedCandidate.firstName} ${selectedCandidate.lastName}`);
+      break;
+    }
+    case "APPROVAL_VOTING":
+    case "LIMITED_VOTE": {
+      ballot.candidateIds = [...selectedCandidateIds.value];
+      summary.push(
+        ...selectedCandidateIds.value
+          .map((candidateId) => candidates.value.find((candidate) => candidate.id === candidateId))
+          .filter((candidate): candidate is Candidate => Boolean(candidate))
+          .map((candidate) => `${candidate.firstName} ${candidate.lastName}`),
+      );
+      break;
+    }
+    case "BORDA_COUNT": {
+      ballot.rankedCandidateIds = [...rankedCandidateIds.value];
+      summary.push(
+        ...rankedCandidates.value.map(
+          (candidate, index) => `${index + 1}. ${candidate.firstName} ${candidate.lastName}`,
+        ),
+      );
+      break;
+    }
+  }
+
+  return ballot;
+}
+
 function goToConfirm() {
-  if (selectedCandidate.value === null) return;
-  const candidate = candidates.value.find(c => c.id === selectedCandidate.value);
-  // Store selection in sessionStorage for the confirm page
-  sessionStorage.setItem('vote_candidate_id', String(selectedCandidate.value));
-  sessionStorage.setItem('vote_candidate_name', candidate ? `${candidate.firstName} ${candidate.lastName}` : '');
-  sessionStorage.setItem('vote_election_id', String(electionId));
-  sessionStorage.setItem('vote_election_title', election.value?.title || '');
-  router.push('/vote/confirm');
+  const ballot = buildBallot();
+  if (!ballot) {
+    return;
+  }
+
+  sessionStorage.setItem("vote_ballot", JSON.stringify(ballot));
+  router.push("/vote/confirm");
 }
 
 async function loadData() {
   loading.value = true;
   error.value = null;
   try {
-    const [el, cands] = await Promise.all([
+    const [loadedElection, loadedCandidates] = await Promise.all([
       electionApi.getById(electionId),
       candidateApi.getByElection(electionId),
     ]);
-    election.value = el;
-    candidates.value = cands;
+    election.value = loadedElection;
+    candidates.value = loadedCandidates;
+    rankedCandidateIds.value = loadedCandidates.map((candidate) => candidate.id);
+
+    if (loadedElection.type === "BINARY_CHOICE" && loadedCandidates.length !== 2) {
+      error.value = "Binary choice elections require exactly two candidates.";
+    }
   } catch (err: any) {
-    error.value = err.response?.data?.message || 'Failed to load election.';
+    error.value = err.response?.data?.message || "Failed to load election.";
   } finally {
     loading.value = false;
   }
@@ -104,13 +314,32 @@ onMounted(loadData);
 }
 
 .election-container {
-  max-width: 700px;
+  max-width: 760px;
   margin: 0 auto;
+}
+
+.election-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
 }
 
 .election-container h1 {
   color: #1a202c;
-  margin-bottom: 0.5rem;
+  margin: 0;
+}
+
+.type-badge {
+  margin: 0;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: #edf2f7;
+  color: #4a5568;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .election-desc {
@@ -122,6 +351,13 @@ onMounted(loadData);
   color: #4a5568;
   font-weight: 500;
   margin-bottom: 1.5rem;
+}
+
+.selection-counter,
+.ranking-help {
+  margin-bottom: 1rem;
+  color: #4a5568;
+  font-weight: 600;
 }
 
 .loading-state, .error-state {
@@ -153,7 +389,9 @@ onMounted(loadData);
   cursor: pointer;
 }
 
-.candidates-list { margin-bottom: 1.5rem; }
+.candidates-list {
+  margin-bottom: 1.5rem;
+}
 
 .candidate-card {
   background: white;
@@ -178,28 +416,50 @@ onMounted(loadData);
 
 .candidate-check { padding-top: 0.25rem; flex-shrink: 0; }
 
-.radio {
+.radio,
+.checkbox {
   width: 1.25rem;
   height: 1.25rem;
   border: 2px solid #cbd5e0;
-  border-radius: 50%;
   transition: all 0.2s;
   position: relative;
 }
 
-.radio.checked {
+.radio {
+  border-radius: 50%;
+}
+
+.checkbox {
+  border-radius: 6px;
+}
+
+.radio.checked,
+.checkbox.checked {
   border-color: #667eea;
+  background: #667eea;
 }
 
 .radio.checked::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 3px;
   left: 3px;
   width: 10px;
   height: 10px;
-  background: #667eea;
+  background: white;
   border-radius: 50%;
+}
+
+.checkbox.checked::after {
+  content: "✓";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
 .candidate-info h3 {
@@ -221,6 +481,57 @@ onMounted(loadData);
   margin: 0;
 }
 
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.ranking-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: white;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.rank-badge {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: #667eea;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.rank-actions {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.move-btn {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e0;
+  background: white;
+  cursor: pointer;
+}
+
+.move-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .vote-button {
   width: 100%;
   padding: 1rem;
@@ -236,4 +547,15 @@ onMounted(loadData);
 
 .vote-button:hover:not(:disabled) { background: #5a67d8; }
 .vote-button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media (max-width: 700px) {
+  .election-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ranking-item {
+    align-items: flex-start;
+  }
+}
 </style>

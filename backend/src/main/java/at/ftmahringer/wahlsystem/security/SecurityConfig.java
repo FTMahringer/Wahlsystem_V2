@@ -72,9 +72,9 @@ public class SecurityConfig {
                     .hasAnyRole("ADMIN", "TEACHER")
                     .requestMatchers("/api/v1/users/**")
                     .hasRole("ADMIN")
-                    // Voting endpoint - requires authentication
+                    // Voting endpoints use election tokens instead of a user session
                     .requestMatchers(HttpMethod.POST, "/api/v1/votes/**")
-                    .authenticated()
+                    .permitAll()
                     // All other requests need authentication
                     .anyRequest()
                     .authenticated()

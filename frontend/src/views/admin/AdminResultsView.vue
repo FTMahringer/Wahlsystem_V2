@@ -23,29 +23,31 @@
     <!-- Results display -->
     <template v-else>
       <div class="total-votes">
-        <strong>Total Votes:</strong> {{ results.totalVotes }}
+        <strong>Total {{ results.resultMetricLabel }}:</strong> {{ results.totalVotes }}
       </div>
 
       <!-- Winners -->
       <div v-if="results.winners && results.winners.length > 0" class="winners-section">
         <h2>🏆 Winner{{ results.winners.length > 1 ? 's' : '' }}</h2>
         <div class="winner-cards">
-          <div v-for="w in results.winners" :key="w.candidateId" class="winner-card">
-            <div class="winner-name">{{ w.firstName }} {{ w.lastName }}</div>
-            <div class="winner-stats">
-              {{ w.voteCount }} votes ({{ w.percentage.toFixed(1) }}%)
+            <div v-for="w in results.winners" :key="w.candidateId" class="winner-card">
+              <div class="winner-name">{{ w.firstName }} {{ w.lastName }}</div>
+              <div class="winner-stats">
+              {{ w.voteCount }} {{ results.resultMetricLabel }} ({{ w.percentage.toFixed(1) }}%)
+              </div>
             </div>
           </div>
-        </div>
       </div>
 
       <!-- All results -->
       <div class="all-results">
         <h2>All Results</h2>
-        <div v-for="r in results.results" :key="r.candidateId" class="result-row">
+          <div v-for="r in results.results" :key="r.candidateId" class="result-row">
           <div class="result-info">
             <span class="result-name">{{ r.firstName }} {{ r.lastName }}</span>
-            <span class="result-count">{{ r.voteCount }} ({{ r.percentage.toFixed(1) }}%)</span>
+            <span class="result-count">
+              {{ r.voteCount }} {{ results.resultMetricLabel }} ({{ r.percentage.toFixed(1) }}%)
+            </span>
           </div>
           <div class="result-bar-track">
             <div
