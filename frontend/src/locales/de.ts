@@ -280,6 +280,8 @@ const de = {
   },
   adminSettings: {
     title: 'Einstellungen',
+    preferencesTitle: 'Oberflächen-Einstellungen',
+    preferencesMessage: 'Wähle die Sprache und das Design, die du im Adminbereich verwenden möchtest.',
     alertTitle: 'Systemeinstellungen',
     alertMessage: 'Systemeinstellungen werden in einem zukünftigen Update verfügbar sein.',
     comingSoonTitle: 'Demnächst verfügbar',

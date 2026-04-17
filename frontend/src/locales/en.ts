@@ -280,6 +280,8 @@ const en = {
   },
   adminSettings: {
     title: 'Settings',
+    preferencesTitle: 'Interface preferences',
+    preferencesMessage: 'Choose the language and theme you want to use in the admin area.',
     alertTitle: 'System Settings',
     alertMessage: 'System settings will be available in a future update.',
     comingSoonTitle: 'Coming Soon',
