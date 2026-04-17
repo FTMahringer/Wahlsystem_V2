@@ -97,6 +97,30 @@ This runs the Docusaurus site locally so you can preview documentation changes b
 - backend Maven wrapper calls are more reliable through the wrapper JAR when `JAVA_HOME` is missing on Windows
 - GitHub Pages deployment is handled by repository workflow automation
 
+## Dev-only login helper
+
+When the backend runs with the `dev` profile, a dev-only helper endpoint is available:
+
+```text
+POST /api/v1/auth/dev-login
+```
+
+Example body:
+
+```json
+{
+  "username": "admin"
+}
+```
+
+This issues a normal auth token for an existing user without requiring a password.
+
+Important notes:
+
+- this endpoint exists only in the `dev` profile
+- it is intended only for local development and testing
+- it does not replace the normal production login flow
+
 ## Validation
 
 ### Frontend

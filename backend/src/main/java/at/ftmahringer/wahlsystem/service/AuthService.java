@@ -99,6 +99,26 @@ public class AuthService {
     }
 
     @Transactional
+    public AuthResponse devLogin(String username) {
+        User user = userRepository
+            .findByUsername(username)
+            .orElseThrow(() -> new BadCredentialsException("User not found"));
+
+        user.setLastLoginAt(LocalDateTime.now());
+        user.setActive(true);
+        userRepository.save(user);
+
+        String token = tokenProvider.generateTokenFromUserId(
+            user.getId(),
+            user.getUsername(),
+            "ROLE_" + user.getRole().name()
+        );
+        String refreshToken = tokenProvider.generateRefreshToken(user.getId());
+
+        return buildAuthResponse(token, refreshToken, user);
+    }
+
+    @Transactional
     public UserDto createManagedUser(RegisterRequest request) {
         return mapToUserDto(createAndSaveUser(request));
     }

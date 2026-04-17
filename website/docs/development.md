@@ -14,6 +14,26 @@ The default development path is script-driven and Docker-based:
 4. run the relevant build or test command
 5. stop the environment with the repository stop script
 
+## Dev-only auth helper
+
+For faster local testing, the backend now exposes a dev-profile-only helper endpoint:
+
+```text
+POST /api/v1/auth/dev-login
+```
+
+Send a username in the request body and the backend returns a normal auth response with access and refresh tokens.
+
+Example:
+
+```json
+{
+  "username": "admin"
+}
+```
+
+This is intentionally limited to the `dev` profile so password storage and the normal login flow stay unchanged.
+
 ## Frontend stack
 
 - Vue 3
