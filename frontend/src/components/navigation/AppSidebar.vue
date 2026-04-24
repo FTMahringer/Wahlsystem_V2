@@ -1,10 +1,11 @@
 <template>
   <aside class="app-sidebar" :class="{ collapsed: uiStore.sidebarCollapsed }">
-
     <!-- Logo -->
     <div class="sidebar-logo">
       <div class="logo-icon-wrap">🗳️</div>
-      <span v-if="!uiStore.sidebarCollapsed" class="logo-text">{{ t('app.name') }}</span>
+      <span v-if="!uiStore.sidebarCollapsed" class="logo-text">{{
+        t("app.name")
+      }}</span>
     </div>
 
     <!-- Main nav -->
@@ -30,79 +31,109 @@
         <SidebarItem :item="item" :collapsed="uiStore.sidebarCollapsed" />
       </template>
     </div>
-
   </aside>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useUiStore } from '@/stores/uiStore';
-import { useLocale } from '@/composables/useLocale';
-import { useRole } from '@/composables/useRole';
-import type { DashNavItem } from '@/types';
-import SidebarItem from './SidebarItem.vue';
-import SidebarGroup from './SidebarGroup.vue';
+import { computed } from "vue";
+import { useUiStore } from "@/stores/uiStore";
+import { useLocale } from "@/composables/useLocale";
+import { useRole } from "@/composables/useRole";
+import type { DashNavItem } from "@/types";
+import SidebarItem from "./SidebarItem.vue";
+import SidebarGroup from "./SidebarGroup.vue";
 
 const uiStore = useUiStore();
 const { hasAnyRole } = useRole();
 const { t } = useLocale();
 
-const BOTTOM_IDS = new Set(['settings', 'profile']);
+const BOTTOM_IDS = new Set(["settings", "profile"]);
 
 const allNavItems = computed<DashNavItem[]>(() => [
   {
-    id: 'dashboard',
-    label: t('nav.dashboard'),
-    icon: '📊',
-    route: '/admin/dashboard',
+    id: "dashboard",
+    label: t("nav.dashboard"),
+    icon: "📊",
+    route: "/admin/dashboard",
   },
   {
-    id: 'elections',
-    label: t('nav.elections'),
-    icon: '🗳️',
+    id: "elections",
+    label: t("nav.elections"),
+    icon: "🗳️",
     children: [
-      { id: 'elections-active', label: t('nav.activeElections'), icon: '▶', route: '/admin/elections?status=ACTIVE' },
-      { id: 'elections-all', label: t('nav.allElections'), icon: '📋', route: '/admin/elections' },
-      { id: 'elections-create', label: t('nav.createElection'), icon: '➕', route: '/admin/elections/create' },
+      {
+        id: "elections-active",
+        label: t("nav.activeElections"),
+        icon: "▶",
+        route: "/admin/elections?status=ACTIVE",
+      },
+      {
+        id: "elections-all",
+        label: t("nav.allElections"),
+        icon: "📋",
+        route: "/admin/elections",
+      },
+      {
+        id: "elections-create",
+        label: t("nav.createElection"),
+        icon: "➕",
+        route: "/admin/elections/create",
+      },
     ],
   },
   {
-    id: 'candidates',
-    label: t('nav.candidates'),
-    icon: '👤',
-    route: '/admin/candidates',
+    id: "candidates",
+    label: t("nav.candidates"),
+    icon: "👤",
+    route: "/admin/candidates",
   },
   {
-    id: 'voters',
-    label: t('nav.voters'),
-    icon: '👥',
-    route: '/admin/voters',
+    id: "user-management",
+    label: t("nav.userManagement"),
+    icon: "👥",
+    roles: ["ADMIN"],
+    children: [
+      { id: "users", label: t("nav.users"), icon: "👤", route: "/admin/users" },
+      {
+        id: "classes",
+        label: t("nav.classes"),
+        icon: "🏫",
+        route: "/admin/classes",
+      },
+    ],
   },
   {
-    id: 'results',
-    label: t('nav.results'),
-    icon: '📈',
-    route: '/admin/results',
+    id: "my-class",
+    label: t("nav.myClass"),
+    icon: "🏫",
+    route: "/teacher/my-class",
+    roles: ["TEACHER"],
   },
   {
-    id: 'audit',
-    label: t('nav.audit'),
-    icon: '🔍',
-    route: '/admin/audit',
-    roles: ['ADMIN'],
+    id: "results",
+    label: t("nav.results"),
+    icon: "📈",
+    route: "/admin/results",
   },
   {
-    id: 'settings',
-    label: t('nav.settings'),
-    icon: '⚙️',
-    route: '/admin/settings',
-    roles: ['ADMIN'],
+    id: "audit",
+    label: t("nav.audit"),
+    icon: "🔍",
+    route: "/admin/audit",
+    roles: ["ADMIN"],
   },
   {
-    id: 'profile',
-    label: t('nav.profile'),
-    icon: '👤',
-    route: '/admin/profile',
+    id: "settings",
+    label: t("nav.settings"),
+    icon: "⚙️",
+    route: "/admin/settings",
+    roles: ["ADMIN"],
+  },
+  {
+    id: "profile",
+    label: t("nav.profile"),
+    icon: "👤",
+    route: "/admin/profile",
   },
 ]);
 
@@ -112,8 +143,12 @@ function isVisible(item: DashNavItem) {
   return true;
 }
 
-const mainItems = computed(() => allNavItems.value.filter(i => !BOTTOM_IDS.has(i.id) && isVisible(i)));
-const bottomItems = computed(() => allNavItems.value.filter(i => BOTTOM_IDS.has(i.id) && isVisible(i)));
+const mainItems = computed(() =>
+  allNavItems.value.filter((i) => !BOTTOM_IDS.has(i.id) && isVisible(i)),
+);
+const bottomItems = computed(() =>
+  allNavItems.value.filter((i) => BOTTOM_IDS.has(i.id) && isVisible(i)),
+);
 </script>
 
 <style scoped>
@@ -174,7 +209,9 @@ const bottomItems = computed(() => allNavItems.value.filter(i => BOTTOM_IDS.has(
   gap: 2px;
   scrollbar-width: none;
 }
-.sidebar-nav::-webkit-scrollbar { display: none; }
+.sidebar-nav::-webkit-scrollbar {
+  display: none;
+}
 
 /* ─── Bottom section ─── */
 .sidebar-bottom {
@@ -191,4 +228,3 @@ const bottomItems = computed(() => allNavItems.value.filter(i => BOTTOM_IDS.has(
   margin: 0 0.4rem 0.5rem;
 }
 </style>
-
