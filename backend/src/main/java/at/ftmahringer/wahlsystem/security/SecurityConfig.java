@@ -67,6 +67,18 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/candidates/**")
                     .permitAll()
+                    // School classes read-only for authenticated users
+                    .requestMatchers(
+                        HttpMethod.GET,
+                        "/api/v1/school-classes/**"
+                    )
+                    .authenticated()
+                    // Student token endpoints
+                    .requestMatchers("/api/v1/student/**")
+                    .hasRole("STUDENT")
+                    // Teacher token distribution endpoints
+                    .requestMatchers("/api/v1/teacher/**")
+                    .hasAnyRole("TEACHER", "ADMIN")
                     // Admin endpoints
                     .requestMatchers("/api/v1/admin/**")
                     .hasAnyRole("ADMIN", "TEACHER")
@@ -101,26 +113,37 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        PasswordEncoder base = switch (passwordProperties.getAlgorithm().toLowerCase()) {
+        PasswordEncoder base = switch (
+            passwordProperties.getAlgorithm().toLowerCase()
+        ) {
             case "argon2" -> {
                 PasswordProperties.Argon2 c = passwordProperties.getArgon2();
                 yield new Argon2PasswordEncoder(
-                    c.getSaltLength(), c.getHashLength(),
-                    c.getParallelism(), c.getMemory(), c.getIterations()
+                    c.getSaltLength(),
+                    c.getHashLength(),
+                    c.getParallelism(),
+                    c.getMemory(),
+                    c.getIterations()
                 );
             }
             case "scrypt" -> {
                 PasswordProperties.Scrypt c = passwordProperties.getScrypt();
                 yield new SCryptPasswordEncoder(
-                    c.getCpuCost(), c.getMemoryCost(), c.getParallelism(),
-                    c.getKeyLength(), c.getSaltLength()
+                    c.getCpuCost(),
+                    c.getMemoryCost(),
+                    c.getParallelism(),
+                    c.getKeyLength(),
+                    c.getSaltLength()
                 );
             }
             default -> new BCryptPasswordEncoder(
                 passwordProperties.getBcrypt().getStrength()
             );
         };
-        return new PepperedPasswordEncoder(base, passwordProperties.getPepper());
+        return new PepperedPasswordEncoder(
+            base,
+            passwordProperties.getPepper()
+        );
     }
 
     @Bean

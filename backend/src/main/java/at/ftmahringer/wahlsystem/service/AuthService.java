@@ -47,6 +47,7 @@ public class AuthService {
     private final JwtTokenProvider tokenProvider;
     private final TokenBlacklistService tokenBlacklistService;
     private final LoginAttemptService loginAttemptService;
+    private final AuditLogService auditLogService;
     private final Environment environment;
 
     @Transactional
@@ -93,9 +94,30 @@ public class AuthService {
                 user.getId()
             );
 
+            auditLogService.logSimple(
+                "USER_LOGIN",
+                user.getId(),
+                user.getUsername(),
+                "ROLE_" + user.getRole().name(),
+                "USER",
+                user.getId(),
+                "User logged in successfully",
+                true
+            );
+
             return buildAuthResponse(token, refreshToken, user);
         } catch (BadCredentialsException e) {
             loginAttemptService.loginFailed(username);
+            auditLogService.logSimple(
+                "USER_LOGIN_FAILED",
+                null,
+                username,
+                null,
+                "USER",
+                null,
+                "Failed login attempt for user: " + username,
+                false
+            );
             throw new BadCredentialsException("Invalid username or password");
         }
     }
@@ -103,6 +125,17 @@ public class AuthService {
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         User savedUser = createAndSaveUser(request);
+
+        auditLogService.logSimple(
+            "USER_REGISTERED",
+            savedUser.getId(),
+            savedUser.getUsername(),
+            "ROLE_" + savedUser.getRole().name(),
+            "USER",
+            savedUser.getId(),
+            "New user registered with role: " + savedUser.getRole(),
+            true
+        );
 
         String token = tokenProvider.generateTokenFromUserId(
             savedUser.getId(),
@@ -330,6 +363,13 @@ public class AuthService {
             .findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found"));
         return mapToUserDto(user);
+    }
+
+    @Transactional(readOnly = true)
+    public User getUserById(Long userId) {
+        return userRepository
+            .findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     @Transactional

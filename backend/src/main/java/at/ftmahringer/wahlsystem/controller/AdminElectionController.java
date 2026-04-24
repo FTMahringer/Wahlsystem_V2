@@ -3,7 +3,9 @@ package at.ftmahringer.wahlsystem.controller;
 import at.ftmahringer.wahlsystem.dto.ElectionDto;
 import at.ftmahringer.wahlsystem.dto.ElectionResultDto;
 import at.ftmahringer.wahlsystem.dto.ElectionUpsertRequest;
+import at.ftmahringer.wahlsystem.entity.User;
 import at.ftmahringer.wahlsystem.security.UserPrincipal;
+import at.ftmahringer.wahlsystem.service.AuthService;
 import at.ftmahringer.wahlsystem.service.ElectionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,10 +26,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/admin/elections")
 @RequiredArgsConstructor
-@Tag(name = "Admin Elections", description = "Admin election management endpoints")
+@Tag(
+    name = "Admin Elections",
+    description = "Admin election management endpoints"
+)
 public class AdminElectionController {
 
     private final ElectionService electionService;
+    private final AuthService authService;
 
     @PostMapping
     @Operation(summary = "Create a new election")
@@ -35,8 +41,13 @@ public class AdminElectionController {
         @Valid @RequestBody ElectionUpsertRequest request,
         @AuthenticationPrincipal UserPrincipal userPrincipal
     ) {
+        User creator = authService.getUserById(userPrincipal.getId());
         return ResponseEntity.ok(
-            electionService.createElection(request, userPrincipal.getUsername())
+            electionService.createElection(
+                request,
+                userPrincipal.getUsername(),
+                creator
+            )
         );
     }
 
@@ -51,9 +62,13 @@ public class AdminElectionController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete an election")
-    public ResponseEntity<Map<String, String>> deleteElection(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> deleteElection(
+        @PathVariable Long id
+    ) {
         electionService.deleteElection(id);
-        return ResponseEntity.ok(Map.of("message", "Election deleted successfully"));
+        return ResponseEntity.ok(
+            Map.of("message", "Election deleted successfully")
+        );
     }
 
     @GetMapping("/{id}/results")

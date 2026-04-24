@@ -5,10 +5,14 @@ import at.ftmahringer.wahlsystem.dto.ElectionResultDto;
 import at.ftmahringer.wahlsystem.dto.ElectionUpsertRequest;
 import at.ftmahringer.wahlsystem.entity.Candidate;
 import at.ftmahringer.wahlsystem.entity.Election;
+import at.ftmahringer.wahlsystem.entity.SchoolClass;
+import at.ftmahringer.wahlsystem.entity.Teacher;
+import at.ftmahringer.wahlsystem.entity.User;
 import at.ftmahringer.wahlsystem.enums.ElectionStatus;
 import at.ftmahringer.wahlsystem.enums.ElectionType;
 import at.ftmahringer.wahlsystem.repository.CandidateRepository;
 import at.ftmahringer.wahlsystem.repository.ElectionRepository;
+import at.ftmahringer.wahlsystem.repository.SchoolClassRepository;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -26,6 +30,7 @@ public class ElectionService {
 
     private final ElectionRepository electionRepository;
     private final CandidateRepository candidateRepository;
+    private final SchoolClassRepository schoolClassRepository;
 
     public List<ElectionDto> getAllPublicElections() {
         return electionRepository
@@ -65,10 +70,14 @@ public class ElectionService {
             );
         }
 
-        List<Candidate> candidates = candidateRepository.findByElectionIdOrderBySortOrderAscIdAsc(
-            electionId
-        );
-        int totalVotes = candidates.stream().mapToInt(Candidate::getVoteCount).sum();
+        List<Candidate> candidates =
+            candidateRepository.findByElectionIdOrderBySortOrderAscIdAsc(
+                electionId
+            );
+        int totalVotes = candidates
+            .stream()
+            .mapToInt(Candidate::getVoteCount)
+            .sum();
         int maxVotes = candidates
             .stream()
             .mapToInt(Candidate::getVoteCount)
@@ -78,8 +87,7 @@ public class ElectionService {
         List<ElectionResultDto.CandidateResultDto> results = candidates
             .stream()
             .map(candidate ->
-                ElectionResultDto.CandidateResultDto
-                    .builder()
+                ElectionResultDto.CandidateResultDto.builder()
                     .candidateId(candidate.getId())
                     .firstName(candidate.getFirstName())
                     .lastName(candidate.getLastName())
@@ -88,10 +96,12 @@ public class ElectionService {
                     .voteCount(candidate.getVoteCount())
                     .percentage(
                         totalVotes > 0
-                            ? (candidate.getVoteCount() * 100.0 / totalVotes)
+                            ? ((candidate.getVoteCount() * 100.0) / totalVotes)
                             : 0.0
                     )
-                    .winner(candidate.getVoteCount() == maxVotes && maxVotes > 0)
+                    .winner(
+                        candidate.getVoteCount() == maxVotes && maxVotes > 0
+                    )
                     .build()
             )
             .sorted(
@@ -106,14 +116,15 @@ public class ElectionService {
             .filter(ElectionResultDto.CandidateResultDto::isWinner)
             .collect(Collectors.toList());
 
-        return ElectionResultDto
-            .builder()
+        return ElectionResultDto.builder()
             .electionId(election.getId())
             .electionTitle(election.getTitle())
             .endedAt(election.getEndAt())
             .totalVotes(totalVotes)
             .resultMetricLabel(
-                election.getType() == ElectionType.BORDA_COUNT ? "points" : "votes"
+                election.getType() == ElectionType.BORDA_COUNT
+                    ? "points"
+                    : "votes"
             )
             .results(results)
             .winners(winners)
@@ -123,21 +134,65 @@ public class ElectionService {
     @Transactional
     public ElectionDto createElection(
         ElectionUpsertRequest request,
-        String createdByUsername
+        String createdByUsername,
+        User creator
     ) {
         validateRequest(request);
 
-        Election election = Election
-            .builder()
+        // If creator is a teacher and a school class is specified,
+        // verify they are the class teacher
+        if (
+            request.getSchoolClassId() != null &&
+            creator instanceof Teacher teacher
+        ) {
+            SchoolClass schoolClass = schoolClassRepository
+                .findById(request.getSchoolClassId())
+                .orElseThrow(() ->
+                    new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "School class not found"
+                    )
+                );
+            if (
+                schoolClass.getClassTeacher() == null ||
+                !schoolClass.getClassTeacher().getId().equals(teacher.getId())
+            ) {
+                throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "You can only create elections for classes you teach"
+                );
+            }
+        }
+
+        Election election = Election.builder()
             .title(request.getTitle().trim())
             .description(normalize(request.getDescription()))
             .type(request.getType())
-            .status(resolveStatus(request.getStatus(), request.getStartAt(), request.getEndAt(), true))
+            .status(
+                resolveStatus(
+                    request.getStatus(),
+                    request.getStartAt(),
+                    request.getEndAt(),
+                    true
+                )
+            )
             .startAt(request.getStartAt())
             .endAt(request.getEndAt())
             .maxSelections(resolveMaxSelections(request))
             .createdBy(createdByUsername)
             .build();
+
+        if (request.getSchoolClassId() != null) {
+            SchoolClass schoolClass = schoolClassRepository
+                .findById(request.getSchoolClassId())
+                .orElseThrow(() ->
+                    new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "School class not found"
+                    )
+                );
+            election.setSchoolClass(schoolClass);
+        }
 
         return mapToDto(electionRepository.save(election));
     }
@@ -154,8 +209,27 @@ public class ElectionService {
         election.setEndAt(request.getEndAt());
         election.setMaxSelections(resolveMaxSelections(request));
         election.setStatus(
-            resolveStatus(request.getStatus(), request.getStartAt(), request.getEndAt(), false)
+            resolveStatus(
+                request.getStatus(),
+                request.getStartAt(),
+                request.getEndAt(),
+                false
+            )
         );
+
+        if (request.getSchoolClassId() != null) {
+            SchoolClass schoolClass = schoolClassRepository
+                .findById(request.getSchoolClassId())
+                .orElseThrow(() ->
+                    new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "School class not found"
+                    )
+                );
+            election.setSchoolClass(schoolClass);
+        } else {
+            election.setSchoolClass(null);
+        }
 
         return mapToDto(electionRepository.save(election));
     }
@@ -174,7 +248,10 @@ public class ElectionService {
         return electionRepository
             .findById(id)
             .orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Election not found")
+                new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Election not found"
+                )
             );
     }
 
@@ -191,7 +268,10 @@ public class ElectionService {
         }
 
         if (request.getType() == ElectionType.LIMITED_VOTE) {
-            if (request.getMaxSelections() == null || request.getMaxSelections() < 1) {
+            if (
+                request.getMaxSelections() == null ||
+                request.getMaxSelections() < 1
+            ) {
                 throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Limited vote elections require a max selection limit"
@@ -213,7 +293,9 @@ public class ElectionService {
         boolean creating
     ) {
         if (requestedStatus == null) {
-            return creating ? ElectionStatus.DRAFT : determinePublishedStatus(startAt, endAt);
+            return creating
+                ? ElectionStatus.DRAFT
+                : determinePublishedStatus(startAt, endAt);
         }
 
         if (requestedStatus == ElectionStatus.DRAFT) {
@@ -245,8 +327,7 @@ public class ElectionService {
     }
 
     private ElectionDto mapToDto(Election election) {
-        return ElectionDto
-            .builder()
+        ElectionDto.ElectionDtoBuilder builder = ElectionDto.builder()
             .id(election.getId())
             .title(election.getTitle())
             .description(election.getDescription())
@@ -257,8 +338,14 @@ public class ElectionService {
             .maxSelections(election.getMaxSelections())
             .createdBy(election.getCreatedBy())
             .createdAt(election.getCreatedAt())
-            .updatedAt(election.getUpdatedAt())
-            .build();
+            .updatedAt(election.getUpdatedAt());
+
+        if (election.getSchoolClass() != null) {
+            builder.schoolClassId(election.getSchoolClass().getId());
+            builder.schoolClassName(election.getSchoolClass().getName());
+        }
+
+        return builder.build();
     }
 
     private String normalize(String value) {

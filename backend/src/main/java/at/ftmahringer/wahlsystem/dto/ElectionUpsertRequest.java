@@ -27,4 +27,6 @@ public class ElectionUpsertRequest {
 
     @Min(1)
     private Integer maxSelections;
+
+    private Long schoolClassId;
 }

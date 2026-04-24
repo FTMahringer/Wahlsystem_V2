@@ -3,11 +3,10 @@ package at.ftmahringer.wahlsystem.entity;
 import at.ftmahringer.wahlsystem.enums.ElectionStatus;
 import at.ftmahringer.wahlsystem.enums.ElectionType;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "elections")
@@ -48,6 +47,10 @@ public class Election {
 
     @Column(name = "created_by")
     private String createdBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "school_class_id")
+    private SchoolClass schoolClass;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

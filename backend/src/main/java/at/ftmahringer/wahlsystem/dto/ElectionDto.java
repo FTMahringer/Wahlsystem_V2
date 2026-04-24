@@ -2,10 +2,9 @@ package at.ftmahringer.wahlsystem.dto;
 
 import at.ftmahringer.wahlsystem.enums.ElectionStatus;
 import at.ftmahringer.wahlsystem.enums.ElectionType;
+import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Data;
-
-import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -22,4 +21,8 @@ public class ElectionDto {
     private String createdBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    // Optional class scope
+    private Long schoolClassId;
+    private String schoolClassName;
 }
