@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   # Frontend (Development with hot reload)
   frontend:
@@ -8,7 +6,7 @@ services:
       dockerfile: ../docker/dev/frontend.Dockerfile
     container_name: ${PROJECT_NAME}-frontend-dev
     volumes:
-      - ../../frontend:/app
+      - ${FRONTEND_APP_SOURCE:-../../frontend}:/app
       - /app/node_modules
     environment:
       - NODE_ENV=development
@@ -25,7 +23,7 @@ services:
       dockerfile: ../docker/dev/backend.Dockerfile
     container_name: ${PROJECT_NAME}-backend-dev
     volumes:
-      - ../../backend:/app
+      - ${BACKEND_APP_SOURCE:-../../backend}:/app
       - maven_cache:/root/.m2
     environment:
       - SPRING_PROFILES_ACTIVE=dev
@@ -154,6 +152,10 @@ services:
     restart: unless-stopped
 
 volumes:
+  frontend_app:
+    name: ${PROJECT_NAME}-frontend-app-dev
+  backend_app:
+    name: ${PROJECT_NAME}-backend-app-dev
   maven_cache:
   mariadb_data:
   # postgres_data:

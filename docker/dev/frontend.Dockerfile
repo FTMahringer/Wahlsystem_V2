@@ -9,6 +9,14 @@ RUN apk add --no-cache git
 # Set working directory
 WORKDIR /app
 
+# Seed the image with the frontend app so Docker volume fallback can populate /app
+COPY package.json package-lock.json ./
+RUN npm install
+COPY index.html vite.config.ts tsconfig.json tsconfig.node.json ./
+COPY .env.development ./
+COPY .env.production ./
+COPY src ./src
+
 # Expose port for dev server
 # Vite uses 5173, React/Next.js use 3000, Angular uses 4200
 # We'll use 5173 as default but it can be changed
@@ -29,8 +37,8 @@ RUN printf '%s\n' '#!/bin/sh' \
     '# Check if node_modules is missing or incomplete (vite not found)' \
     'if [ ! -d node_modules ] || [ ! -f node_modules/.bin/vite ]; then' \
     '    echo "Installing dependencies..."' \
-    '    rm -rf node_modules package-lock.json' \
-    '    npm install' \
+    '    rm -rf node_modules' \
+    '    if [ -f package-lock.json ]; then npm ci; else npm install; fi' \
     'fi' \
     '' \
     'echo "Starting development server..."' \
