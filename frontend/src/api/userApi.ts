@@ -4,6 +4,7 @@ import type {
   RegisterRequest,
   User,
   UserActiveUpdateRequest,
+  UserUpdateRequest,
 } from "@/types";
 
 export const userApi = {
@@ -37,6 +38,11 @@ export const userApi = {
     data: UserActiveUpdateRequest,
   ): Promise<User> => {
     const response = await apiClient.patch(`/users/${id}/active`, data);
+    return response.data;
+  },
+
+  updateUser: async (id: number, data: UserUpdateRequest): Promise<User> => {
+    const response = await apiClient.put(`/users/${id}`, data);
     return response.data;
   },
 };

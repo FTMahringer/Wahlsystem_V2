@@ -1,4 +1,4 @@
-import { translate, type TranslateFunction } from '@/locales';
+import { translate, type TranslateFunction } from "@/locales";
 
 export type ElectionStatus =
   | "DRAFT"
@@ -78,6 +78,8 @@ export interface Election {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  schoolClassId?: number;
+  schoolClassName?: string;
 }
 
 export interface CreateElectionRequest {
@@ -88,4 +90,5 @@ export interface CreateElectionRequest {
   startAt: string | null;
   endAt: string | null;
   maxSelections: number | null;
+  schoolClassId?: number;
 }

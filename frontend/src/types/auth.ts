@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN' | 'TEACHER' | 'STUDENT' | 'VOTER';
+export type UserRole = "ADMIN" | "TEACHER" | "STUDENT" | "VOTER";
 
 export interface User {
   id: number;
@@ -27,6 +27,7 @@ export interface User {
   className?: string;
   gradeLevel?: number;
   canVote?: boolean;
+  schoolClassId?: number;
 }
 
 export interface AuthState {
@@ -75,11 +76,36 @@ export interface TokenLoginCredentials {
 }
 
 export interface ManagedUserFilters {
-  role?: Exclude<UserRole, 'ADMIN' | 'VOTER'>;
+  role?: Exclude<UserRole, "ADMIN" | "VOTER">;
   active?: boolean;
   search?: string;
 }
 
 export interface UserActiveUpdateRequest {
   active: boolean;
+}
+
+export interface UserUpdateRequest {
+  username?: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  role?: UserRole;
+  active?: boolean;
+  // Admin
+  adminLevel?: number;
+  department?: string;
+  phone?: string;
+  // Teacher
+  employeeId?: string;
+  subjects?: string;
+  departmentTeacher?: string;
+  maxActiveElections?: number;
+  canCreateElections?: boolean;
+  // Student
+  studentId?: string;
+  className?: string;
+  gradeLevel?: number;
+  canVote?: boolean;
+  schoolClassId?: number;
 }

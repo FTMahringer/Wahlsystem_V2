@@ -1,8 +1,6 @@
 package at.ftmahringer.wahlsystem.service;
 
 import at.ftmahringer.wahlsystem.dto.CastVoteRequest;
-import at.ftmahringer.wahlsystem.dto.TokenLoginRequest;
-import at.ftmahringer.wahlsystem.dto.TokenLoginResponse;
 import at.ftmahringer.wahlsystem.entity.Candidate;
 import at.ftmahringer.wahlsystem.entity.Election;
 import at.ftmahringer.wahlsystem.entity.StudentVoteToken;
@@ -29,19 +27,7 @@ public class VotingService {
 
     private final StudentVoteTokenRepository studentVoteTokenRepository;
     private final CandidateRepository candidateRepository;
-
-    @Transactional(readOnly = true)
-    public TokenLoginResponse validateVotingToken(TokenLoginRequest request) {
-        StudentVoteToken voteToken = getUnusedToken(request.getToken().trim());
-        Election election = getElectionForToken(voteToken);
-        validateElectionOpen(election);
-
-        return TokenLoginResponse
-            .builder()
-            .token(voteToken.getToken())
-            .electionId(election.getId())
-            .build();
-    }
+    private final AuditLogService auditLogService;
 
     @Transactional
     public void castVote(CastVoteRequest request) {
@@ -57,9 +43,10 @@ public class VotingService {
 
         validateElectionOpen(election);
 
-        List<Candidate> candidates = candidateRepository.findByElectionIdOrderBySortOrderAscIdAsc(
-            election.getId()
-        );
+        List<Candidate> candidates =
+            candidateRepository.findByElectionIdOrderBySortOrderAscIdAsc(
+                election.getId()
+            );
         Map<Long, Candidate> candidatesById = candidates
             .stream()
             .collect(Collectors.toMap(Candidate::getId, Function.identity()));
@@ -71,8 +58,16 @@ public class VotingService {
                 election
             );
             case APPROVAL_VOTING -> applyApprovalVote(request, candidatesById);
-            case LIMITED_VOTE -> applyLimitedVote(request, candidatesById, election);
-            case BORDA_COUNT -> applyBordaVote(request, candidatesById, candidates.size());
+            case LIMITED_VOTE -> applyLimitedVote(
+                request,
+                candidatesById,
+                election
+            );
+            case BORDA_COUNT -> applyBordaVote(
+                request,
+                candidatesById,
+                candidates.size()
+            );
         }
 
         voteToken.setUsed(true);
@@ -81,6 +76,25 @@ public class VotingService {
             voteToken.getStudent().setHasVoted(true);
         }
         studentVoteTokenRepository.save(voteToken);
+
+        auditLogService.logSimple(
+            "VOTE_CAST",
+            voteToken.getStudent() != null
+                ? voteToken.getStudent().getId()
+                : null,
+            voteToken.getStudent() != null
+                ? voteToken.getStudent().getUsername()
+                : "anonymous",
+            "ROLE_STUDENT",
+            "ELECTION",
+            election.getId(),
+            "Vote cast in election: " +
+                election.getTitle() +
+                " (type: " +
+                election.getType() +
+                ")",
+            true
+        );
     }
 
     private void applySingleChoiceVote(
@@ -111,7 +125,9 @@ public class VotingService {
         CastVoteRequest request,
         Map<Long, Candidate> candidatesById
     ) {
-        List<Long> candidateIds = normalizeDistinctIds(request.getCandidateIds());
+        List<Long> candidateIds = normalizeDistinctIds(
+            request.getCandidateIds()
+        );
         if (candidateIds.isEmpty()) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
@@ -136,7 +152,9 @@ public class VotingService {
         Map<Long, Candidate> candidatesById,
         Election election
     ) {
-        List<Long> candidateIds = normalizeDistinctIds(request.getCandidateIds());
+        List<Long> candidateIds = normalizeDistinctIds(
+            request.getCandidateIds()
+        );
         if (candidateIds.isEmpty()) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
@@ -206,12 +224,18 @@ public class VotingService {
         String errorMessage
     ) {
         if (candidateId == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                errorMessage
+            );
         }
 
         Candidate candidate = candidatesById.get(candidateId);
         if (candidate == null || !Boolean.TRUE.equals(candidate.getActive())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                errorMessage
+            );
         }
 
         return candidate;
@@ -277,7 +301,9 @@ public class VotingService {
             );
         }
 
-        if (election.getStartAt() != null && election.getStartAt().isAfter(now)) {
+        if (
+            election.getStartAt() != null && election.getStartAt().isAfter(now)
+        ) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
                 "This election has not started yet"

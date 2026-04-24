@@ -1,14 +1,14 @@
 <template>
   <div class="login-container">
-      <div class="login-card">
-        <div class="login-header">
-        <h1>{{ t('app.name') }}</h1>
-        <p class="subtitle">{{ t('auth.signInToAccount') }}</p>
+    <div class="login-card">
+      <div class="login-header">
+        <h1>{{ t("app.name") }}</h1>
+        <p class="subtitle">{{ t("auth.signInToAccount") }}</p>
       </div>
 
       <form @submit.prevent="handleLogin" class="login-form">
         <div class="form-group">
-          <label for="username">{{ t('auth.username') }}</label>
+          <label for="username">{{ t("auth.username") }}</label>
           <input
             id="username"
             v-model="credentials.username"
@@ -20,7 +20,7 @@
         </div>
 
         <div class="form-group">
-          <label for="password">{{ t('auth.password') }}</label>
+          <label for="password">{{ t("auth.password") }}</label>
           <input
             id="password"
             v-model="credentials.password"
@@ -40,16 +40,14 @@
           class="login-button"
           :disabled="authStore.loading || !isFormValid"
         >
-          <span v-if="authStore.loading">{{ t('auth.signingIn') }}</span>
-          <span v-else>{{ t('auth.signIn') }}</span>
+          <span v-if="authStore.loading">{{ t("auth.signingIn") }}</span>
+          <span v-else>{{ t("auth.signIn") }}</span>
         </button>
       </form>
 
       <div class="login-footer">
         <p class="voter-link">
-          <router-link to="/">{{ t('common.backToHome') }}</router-link>
-          &nbsp;|&nbsp;
-          <router-link to="/vote/login">{{ t('auth.voterLoginWithToken') }}</router-link>
+          <router-link to="/">{{ t("common.backToHome") }}</router-link>
         </p>
       </div>
     </div>
@@ -78,10 +76,13 @@ const isFormValid = computed(() => {
 async function handleLogin() {
   const success = await authStore.login(credentials);
   if (success) {
-    // Redirect based on role
     const user = authStore.currentUser;
-    if (user?.role === "ADMIN" || user?.role === "TEACHER") {
+    if (user?.role === "ADMIN") {
       router.push("/admin/dashboard");
+    } else if (user?.role === "TEACHER") {
+      router.push("/teacher/dashboard");
+    } else if (user?.role === "STUDENT") {
+      router.push("/student/dashboard");
     } else {
       router.push("/");
     }
