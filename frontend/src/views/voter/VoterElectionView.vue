@@ -3,12 +3,12 @@
     <div class="election-container">
       <div v-if="loading" class="loading-state">
         <div class="spinner" />
-        <p>{{ t('voter.loadingElection') }}</p>
+        <p>{{ t("voter.loadingElection") }}</p>
       </div>
 
       <div v-else-if="error" class="error-state">
         <p>{{ error }}</p>
-        <button class="btn" @click="loadData">{{ t('common.retry') }}</button>
+        <button class="btn" @click="loadData">{{ t("common.retry") }}</button>
       </div>
 
       <template v-else-if="election">
@@ -16,10 +16,18 @@
           <h1>{{ election.title }}</h1>
           <p class="type-badge">{{ electionType.label }}</p>
         </div>
-        <p v-if="election.description" class="election-desc">{{ election.description }}</p>
+        <p v-if="election.description" class="election-desc">
+          {{ election.description }}
+        </p>
         <p class="instruction">{{ instructionText }}</p>
 
-        <div v-if="election.type === 'SINGLE_CHOICE' || election.type === 'BINARY_CHOICE'" class="candidates-list">
+        <div
+          v-if="
+            election.type === 'SINGLE_CHOICE' ||
+            election.type === 'BINARY_CHOICE'
+          "
+          class="candidates-list"
+        >
           <div
             v-for="candidate in candidates"
             :key="candidate.id"
@@ -28,19 +36,33 @@
             @click="selectedCandidateId = candidate.id"
           >
             <div class="candidate-check">
-              <div class="radio" :class="{ checked: selectedCandidateId === candidate.id }" />
+              <div
+                class="radio"
+                :class="{ checked: selectedCandidateId === candidate.id }"
+              />
             </div>
             <div class="candidate-info">
               <h3>{{ candidate.firstName }} {{ candidate.lastName }}</h3>
-              <p v-if="candidate.className" class="class-name">{{ candidate.className }}</p>
-              <p v-if="candidate.description" class="description">{{ candidate.description }}</p>
+              <p v-if="candidate.className" class="class-name">
+                {{ candidate.className }}
+              </p>
+              <p v-if="candidate.description" class="description">
+                {{ candidate.description }}
+              </p>
             </div>
           </div>
         </div>
 
-        <template v-else-if="election.type === 'APPROVAL_VOTING' || election.type === 'LIMITED_VOTE'">
+        <template
+          v-else-if="
+            election.type === 'APPROVAL_VOTING' ||
+            election.type === 'LIMITED_VOTE'
+          "
+        >
           <div class="selection-counter">
-            {{ t('voter.selectedCount', { count: selectedCandidateIds.length }) }}
+            {{
+              t("voter.selectedCount", { count: selectedCandidateIds.length })
+            }}
             <template v-if="election.type === 'LIMITED_VOTE'">
               / {{ selectionLimit }}
             </template>
@@ -55,12 +77,21 @@
               @click="toggleCandidate(candidate.id)"
             >
               <div class="candidate-check">
-                <div class="checkbox" :class="{ checked: selectedCandidateIds.includes(candidate.id) }" />
+                <div
+                  class="checkbox"
+                  :class="{
+                    checked: selectedCandidateIds.includes(candidate.id),
+                  }"
+                />
               </div>
               <div class="candidate-info">
                 <h3>{{ candidate.firstName }} {{ candidate.lastName }}</h3>
-                <p v-if="candidate.className" class="class-name">{{ candidate.className }}</p>
-                <p v-if="candidate.description" class="description">{{ candidate.description }}</p>
+                <p v-if="candidate.className" class="class-name">
+                  {{ candidate.className }}
+                </p>
+                <p v-if="candidate.description" class="description">
+                  {{ candidate.description }}
+                </p>
               </div>
             </div>
           </div>
@@ -68,7 +99,7 @@
 
         <template v-else-if="election.type === 'BORDA_COUNT'">
           <div class="ranking-help">
-            {{ t('voter.rankHelp') }}
+            {{ t("voter.rankHelp") }}
           </div>
 
           <div class="ranking-list">
@@ -80,8 +111,12 @@
               <div class="rank-badge">{{ index + 1 }}</div>
               <div class="candidate-info">
                 <h3>{{ candidate.firstName }} {{ candidate.lastName }}</h3>
-                <p v-if="candidate.className" class="class-name">{{ candidate.className }}</p>
-                <p v-if="candidate.description" class="description">{{ candidate.description }}</p>
+                <p v-if="candidate.className" class="class-name">
+                  {{ candidate.className }}
+                </p>
+                <p v-if="candidate.description" class="description">
+                  {{ candidate.description }}
+                </p>
               </div>
               <div class="rank-actions">
                 <button
@@ -105,8 +140,12 @@
           </div>
         </template>
 
-        <button class="vote-button" :disabled="!canContinue" @click="goToConfirm">
-          {{ t('voter.continueToConfirm') }}
+        <button
+          class="vote-button"
+          :disabled="!canContinue"
+          @click="goToConfirm"
+        >
+          {{ t("voter.continueToConfirm") }}
         </button>
       </template>
     </div>
@@ -118,7 +157,11 @@ import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { candidateApi, electionApi } from "@/api";
 import { useLocale } from "@/composables/useLocale";
-import { getElectionTypeDefinition, type Candidate, type Election } from "@/types";
+import {
+  getElectionTypeDefinition,
+  type Candidate,
+  type Election,
+} from "@/types";
 
 interface StoredVoteBallot {
   electionId: number;
@@ -144,7 +187,9 @@ const loading = ref(false);
 const error = ref<string | null>(null);
 
 const electionType = computed(() =>
-  election.value ? getElectionTypeDefinition(election.value.type, t) : getElectionTypeDefinition("SINGLE_CHOICE", t),
+  election.value
+    ? getElectionTypeDefinition(election.value.type, t)
+    : getElectionTypeDefinition("SINGLE_CHOICE", t),
 );
 
 const selectionLimit = computed(() => election.value?.maxSelections ?? 1);
@@ -155,7 +200,7 @@ const instructionText = computed(() => {
   }
 
   if (election.value.type === "LIMITED_VOTE") {
-    return t('voter.limitedVoteInstruction', { count: selectionLimit.value });
+    return t("voter.limitedVoteInstruction", { count: selectionLimit.value });
   }
 
   return electionType.value.helperText;
@@ -163,7 +208,9 @@ const instructionText = computed(() => {
 
 const rankedCandidates = computed(() =>
   rankedCandidateIds.value
-    .map((candidateId) => candidates.value.find((candidate) => candidate.id === candidateId))
+    .map((candidateId) =>
+      candidates.value.find((candidate) => candidate.id === candidateId),
+    )
     .filter((candidate): candidate is Candidate => Boolean(candidate)),
 );
 
@@ -197,7 +244,9 @@ function toggleCandidate(candidateId: number) {
 
   const alreadySelected = selectedCandidateIds.value.includes(candidateId);
   if (alreadySelected) {
-    selectedCandidateIds.value = selectedCandidateIds.value.filter((id) => id !== candidateId);
+    selectedCandidateIds.value = selectedCandidateIds.value.filter(
+      (id) => id !== candidateId,
+    );
     return;
   }
 
@@ -246,7 +295,9 @@ function buildBallot(): StoredVoteBallot | null {
         return null;
       }
       ballot.candidateId = selectedCandidate.id;
-      summary.push(`${selectedCandidate.firstName} ${selectedCandidate.lastName}`);
+      summary.push(
+        `${selectedCandidate.firstName} ${selectedCandidate.lastName}`,
+      );
       break;
     }
     case "APPROVAL_VOTING":
@@ -254,7 +305,9 @@ function buildBallot(): StoredVoteBallot | null {
       ballot.candidateIds = [...selectedCandidateIds.value];
       summary.push(
         ...selectedCandidateIds.value
-          .map((candidateId) => candidates.value.find((candidate) => candidate.id === candidateId))
+          .map((candidateId) =>
+            candidates.value.find((candidate) => candidate.id === candidateId),
+          )
           .filter((candidate): candidate is Candidate => Boolean(candidate))
           .map((candidate) => `${candidate.firstName} ${candidate.lastName}`),
       );
@@ -264,7 +317,8 @@ function buildBallot(): StoredVoteBallot | null {
       ballot.rankedCandidateIds = [...rankedCandidateIds.value];
       summary.push(
         ...rankedCandidates.value.map(
-          (candidate, index) => `${index + 1}. ${candidate.firstName} ${candidate.lastName}`,
+          (candidate, index) =>
+            `${index + 1}. ${candidate.firstName} ${candidate.lastName}`,
         ),
       );
       break;
@@ -281,7 +335,7 @@ function goToConfirm() {
   }
 
   sessionStorage.setItem("vote_ballot", JSON.stringify(ballot));
-  router.push("/vote/confirm");
+  router.push("/student/vote/confirm");
 }
 
 async function loadData() {
@@ -294,13 +348,18 @@ async function loadData() {
     ]);
     election.value = loadedElection;
     candidates.value = loadedCandidates;
-    rankedCandidateIds.value = loadedCandidates.map((candidate) => candidate.id);
+    rankedCandidateIds.value = loadedCandidates.map(
+      (candidate) => candidate.id,
+    );
 
-    if (loadedElection.type === "BINARY_CHOICE" && loadedCandidates.length !== 2) {
-      error.value = t('voter.binaryChoiceRequiresTwo');
+    if (
+      loadedElection.type === "BINARY_CHOICE" &&
+      loadedCandidates.length !== 2
+    ) {
+      error.value = t("voter.binaryChoiceRequiresTwo");
     }
   } catch (err: any) {
-    error.value = err.response?.data?.message || t('voter.loadElectionFailed');
+    error.value = err.response?.data?.message || t("voter.loadElectionFailed");
   } finally {
     loading.value = false;
   }
@@ -314,12 +373,10 @@ onMounted(loadData);
   min-height: 100vh;
   padding: 2rem;
 }
-
 .election-container {
   max-width: 760px;
   margin: 0 auto;
 }
-
 .election-header {
   display: flex;
   justify-content: space-between;
@@ -327,12 +384,10 @@ onMounted(loadData);
   align-items: center;
   margin-bottom: 0.5rem;
 }
-
 .election-container h1 {
   color: #1a202c;
   margin: 0;
 }
-
 .type-badge {
   margin: 0;
   padding: 0.35rem 0.8rem;
@@ -343,30 +398,26 @@ onMounted(loadData);
   font-weight: 700;
   text-transform: uppercase;
 }
-
 .election-desc {
   color: #718096;
   margin-bottom: 0.5rem;
 }
-
 .instruction {
   color: #4a5568;
   font-weight: 500;
   margin-bottom: 1.5rem;
 }
-
 .selection-counter,
 .ranking-help {
   margin-bottom: 1rem;
   color: #4a5568;
   font-weight: 600;
 }
-
-.loading-state, .error-state {
+.loading-state,
+.error-state {
   text-align: center;
   padding: 3rem;
 }
-
 .spinner {
   width: 2.5rem;
   height: 2.5rem;
@@ -376,12 +427,17 @@ onMounted(loadData);
   animation: spin 0.8s linear infinite;
   margin: 0 auto 1rem;
 }
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.error-state { color: #e53e3e; }
-.error-state p { margin-bottom: 1rem; }
-
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.error-state {
+  color: #e53e3e;
+}
+.error-state p {
+  margin-bottom: 1rem;
+}
 .btn {
   padding: 0.5rem 1rem;
   background: #667eea;
@@ -390,11 +446,9 @@ onMounted(loadData);
   border-radius: 8px;
   cursor: pointer;
 }
-
 .candidates-list {
   margin-bottom: 1.5rem;
 }
-
 .candidate-card {
   background: white;
   padding: 1.25rem 1.5rem;
@@ -406,18 +460,19 @@ onMounted(loadData);
   display: flex;
   gap: 1rem;
   align-items: flex-start;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
-
-.candidate-card:hover { border-color: #667eea; }
-
+.candidate-card:hover {
+  border-color: #667eea;
+}
 .candidate-card.selected {
   border-color: #667eea;
   background: #f0f4ff;
 }
-
-.candidate-check { padding-top: 0.25rem; flex-shrink: 0; }
-
+.candidate-check {
+  padding-top: 0.25rem;
+  flex-shrink: 0;
+}
 .radio,
 .checkbox {
   width: 1.25rem;
@@ -426,21 +481,17 @@ onMounted(loadData);
   transition: all 0.2s;
   position: relative;
 }
-
 .radio {
   border-radius: 50%;
 }
-
 .checkbox {
   border-radius: 6px;
 }
-
 .radio.checked,
 .checkbox.checked {
   border-color: #667eea;
   background: #667eea;
 }
-
 .radio.checked::after {
   content: "";
   position: absolute;
@@ -451,7 +502,6 @@ onMounted(loadData);
   background: white;
   border-radius: 50%;
 }
-
 .checkbox.checked::after {
   content: "✓";
   position: absolute;
@@ -463,33 +513,28 @@ onMounted(loadData);
   font-size: 0.85rem;
   font-weight: 700;
 }
-
 .candidate-info h3 {
   margin: 0 0 0.25rem 0;
   color: #1a202c;
   font-size: 1.05rem;
 }
-
 .class-name {
   color: #667eea;
   font-size: 0.85rem;
   margin: 0 0 0.25rem 0;
   font-weight: 500;
 }
-
 .description {
   color: #718096;
   font-size: 0.9rem;
   margin: 0;
 }
-
 .ranking-list {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
 }
-
 .ranking-item {
   display: flex;
   align-items: center;
@@ -497,9 +542,8 @@ onMounted(loadData);
   background: white;
   border-radius: 12px;
   padding: 1rem 1.25rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
-
 .rank-badge {
   width: 2rem;
   height: 2rem;
@@ -512,14 +556,12 @@ onMounted(loadData);
   font-weight: 700;
   flex-shrink: 0;
 }
-
 .rank-actions {
   margin-left: auto;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
-
 .move-btn {
   width: 2rem;
   height: 2rem;
@@ -528,12 +570,10 @@ onMounted(loadData);
   background: white;
   cursor: pointer;
 }
-
 .move-btn:disabled {
   cursor: not-allowed;
   opacity: 0.5;
 }
-
 .vote-button {
   width: 100%;
   padding: 1rem;
@@ -546,16 +586,18 @@ onMounted(loadData);
   cursor: pointer;
   transition: background 0.2s;
 }
-
-.vote-button:hover:not(:disabled) { background: #5a67d8; }
-.vote-button:disabled { opacity: 0.5; cursor: not-allowed; }
-
+.vote-button:hover:not(:disabled) {
+  background: #5a67d8;
+}
+.vote-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 @media (max-width: 700px) {
   .election-header {
     flex-direction: column;
     align-items: flex-start;
   }
-
   .ranking-item {
     align-items: flex-start;
   }
