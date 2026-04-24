@@ -1,0 +1,152 @@
+# Wahlsystem — Implementierungsstatus & Offene Punkte
+
+> Dieses Dokument dient als Living-Document für den aktuellen Entwicklungsstand.
+> Abgeschlossene Features werden entfernt, neue Ideen und offene Punkte hinzugefügt.
+
+---
+
+## ✅ Bereits implementiert (aus diesem Dokument entfernt)
+
+### Wahltypen (alle 5 Core-Typen)
+- Single Choice, Binary Choice, Approval Voting, Limited Vote, Borda Count
+
+### Token-basiertes Voting
+- Token-Generierung pro Wahl & Klasse
+- Token-Verteilung: UI-Modus (Schüler sieht Token im Dashboard) oder Paper-Modus (Lehrer druckt Liste)
+- Token-Validierung bei Stimmabgabe
+
+### Benutzerverwaltung
+- Rollen: Admin, Teacher, Student
+- Admin: User-Management mit Wizard (Single/Bulk/CSV)
+- Admin: Benutzer-Export mit Feld-Auswahl (CSV)
+- Lehrer: sieht eigene Klasse (read-only)
+- Schüler-Registrierung blockiert ohne existierende Klasse
+
+### Klassenverwaltung
+- Klassen erstellen/bearbeiten/löschen
+- Klassenlehrer zuweisen
+- Schüler zu Klasse zuweisen
+
+### Wahlen
+- Wahl-Erstellung mit Klassen-Zuordnung
+- Lehrer kann nur für eigene Klassen Wahlen erstellen
+- Admin kann für alle Klassen Wahlen erstellen
+
+### Dashboards
+- Admin-Dashboard mit Statistiken
+- Teacher-Dashboard mit eigenen Wahlen & Klassen
+- Student-Dashboard mit aktiven Wahlen & Token-Anzeige
+
+### Audit-Logging
+- Datenbank-gestütztes Logging (AuditLog Entity)
+- Log-Einträge: Login, Vote, User-Änderungen, etc.
+- Admin-Ansicht für Audit-Logs mit Filter/Suche
+
+### Fehlerbehandlung
+- Verbesserte Fehlermeldungen im Axios-Interceptor
+- User-friendly Messages für 403, 404, 409, 422, 429, 500
+
+---
+
+## 🔄 Offene Punkte & Nächste Schritte
+
+### 8. Extra Voting-Runde für verpasste Schüler
+**Idee:** Admin kann eine "Nachhol-Wahl" einberufen für Schüler, die krank waren oder vergessen haben zu wählen.
+
+**Anforderungen:**
+- Alle Schüler mit unbenutztem Token für eine abgelaufene Wahl identifizieren
+- Neue Token generieren oder bestehende Token reaktivieren
+- Zeitlich begrenzte Nachhol-Runde erstellen
+- Keine doppelte Stimmabgabe möglich
+
+**Offene Fragen:**
+- Soll die Nachhol-Runde eine komplett neue Wahl sein oder die bestehende verlängern?
+- Wie wird das Ergebnis kombiniert (Original + Nachholer)?
+- Soll es eine separate Auswertung geben?
+
+**Status:** Konzeptphase
+
+---
+
+### 9. Candidate = Student Link + PDF Upload + Kandidaten-Dashboard
+**Idee:** Ein Kandidat ist immer ein Schüler. Der Kandidat kann seinen eigenen Wahlkampf-Beitrag (PDF) hochladen, den andere Schüler einsehen können.
+
+**Anforderungen:**
+- Candidate Entity anpassen:
+  - `studentId` statt `firstName`/`lastName`/`className`
+  - `manifestoPdfPath` für das hochgeladene PDF
+  - `manifestoDescription` für kurzen Text
+- PDF-Upload im Kandidaten-Dashboard
+- PDF-Anzeige im Wahl-Flow (nur Anzeige, kein Download)
+- Neues "Meine Kandidaturen" im Student-Navbar
+- Kandidat kann seinen Beitrag editieren
+
+**Technische Änderungen:**
+- Backend: Candidate Entity refactoring
+- Backend: File-Upload-Service (PDF-Storage)
+- Backend: Neue Endpunkte für Kandidaten-Self-Service
+- Frontend: CandidateDashboardView
+- Frontend: PDF-Viewer-Komponente
+- Frontend: Upload-Modal
+
+**Status:** Konzeptphase
+
+---
+
+### 10. Folder-Struktur Refactoring
+**Idee:** Zusammengehörige Dateien besser gruppieren.
+
+**Backend:**
+- DTOs in Subfolder pro Domain:
+  ```
+  dto/
+    auth/
+      AuthResponse.java
+      LoginRequest.java
+      RegisterRequest.java
+    election/
+      ElectionDto.java
+      ElectionUpsertRequest.java
+    user/
+      UserDto.java
+      UserUpdateRequest.java
+    candidate/
+      CandidateDto.java
+    schoolclass/
+      SchoolClassDto.java
+  ```
+
+**Frontend:**
+- Views zusammenführen:
+  ```
+  views/
+    admin/
+    teacher/
+    student/
+    voter/  → in student/ integrieren (bereits teilweise gemacht)
+  ```
+- Components nach Feature gruppieren
+
+**Status:** Geplant
+
+---
+
+## 📝 Weitere Ideen (Backlog)
+
+### Zukünftige Wahltypen
+- Instant Runoff Voting (Ranked Choice Elimination)
+- Score Voting (Sterne-Bewertung)
+- Candidate Pair Voting (Team-Wahlen)
+- Separate Dual-Role Election (Repräsentant + Vize in einem Formular)
+
+### UX-Verbesserungen
+- Drag-and-Drop für Borda Count Ranking
+- Live-Ergebnisse während aktiver Wahl (optional)
+- Wahl-Vorschau vor Veröffentlichung
+- Mobile-Optimierung der Stimmzettel
+
+### Technische Verbesserungen
+- Caching für häufig abgefragte Daten
+- Rate-Limiting für API-Endpunkte
+- E-Mail-Benachrichtigungen (Wahl-Start, Erinnerung)
+- Backup/Restore für Wahldaten
